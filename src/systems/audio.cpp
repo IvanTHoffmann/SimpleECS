@@ -6,7 +6,6 @@
 #include "SimpleECS/componentManager.hpp"
 #include "SimpleECS/util.hpp"
 
-
 // TODO: Support changing audio devices at runtime
 
 // PortAudio functions
@@ -25,8 +24,6 @@ static int paSoundCallback(
 
 	int16_t* out = (int16_t*)outputBuffer;
 
-	u32 nextIndex;
-
 	bool firstSound = true;
 	ent.set(app->componentManager.getPrefabID("sound"));
 	while (ent.next()) {
@@ -35,33 +32,29 @@ static int paSoundCallback(
 
 		for (unsigned long i = 0; i < framesPerBuffer * 2; i+=2) {
 			if (firstSound) {
-				out[i] = 0;
+				out[i + 0] = 0;
 				out[i + 1] = 0;
 			}
 
 			soundInfo = app->assetManager.getSound(ent.Sound->soundIndex);
 
-			ent.Sound->subIndex += ent.Sound->speed * SOUND_SPEED_PRECISION;
-			nextIndex = ent.Sound->sampleIndex + ent.Sound->subIndex / SOUND_SPEED_PRECISION;
+			ent.Sound->subIndex += ent.Sound->speed;
+			ent.Sound->sampleIndex = ent.Sound->sampleIndex + (int)ent.Sound->subIndex;
 
-			//PRINT_VAR(nextIndex, d);
-
-			if (nextIndex > soundInfo->sampleCount / 2) { // finished playing sample
-				ent.Sound->sampleIndex = (soundInfo->sampleCount / 2) * (ent.Sound->speed < 0);
-				ent.Sound->subIndex = 0;
+			if (ent.Sound->sampleIndex > soundInfo->sampleCount / soundInfo->numChannels) { // finished playing sample
+				ent.Sound->sampleIndex = (soundInfo->sampleCount / soundInfo->numChannels) * (ent.Sound->speed < 0);
+				ent.Sound->subIndex = 0.0f;
 				if (!(ent.Sound->flags & SOUND_LOOP)) {
 					ent.Sound->flags |= COMP_DISABLED;
 					break;
 				}
 			}
 			else {
-				ent.Sound->sampleIndex = nextIndex;
-				ent.Sound->subIndex %= SOUND_SPEED_PRECISION;
-				//ent.Sound->subIndex -= SOUND_SPEED_PRECISION * (ent.Sound->speed < 0); // fixes negative modulo
-
-				out[i + 0] += soundInfo->data[ent.Sound->sampleIndex * 2] * ent.Sound->leftVolume;
-				out[i + 1] += soundInfo->data[ent.Sound->sampleIndex * 2 + 1] * ent.Sound->rightVolume;
+				ent.Sound->subIndex = MOD1(ent.Sound->subIndex);
 			}
+
+			out[i + 0] += soundInfo->data[ent.Sound->sampleIndex * soundInfo->numChannels] * ent.Sound->leftVolume;
+			out[i + 1] += soundInfo->data[ent.Sound->sampleIndex * soundInfo->numChannels + (soundInfo->numChannels > 1)] * ent.Sound->rightVolume;
 		}
 		ent.syncSound();
 		firstSound = false;
@@ -121,18 +114,53 @@ void initAudioSystem(CB_PARAMS) {
 }
 
 void updateAudioSystem(CB_PARAMS) {
-	Entity ent(app);
-	ent.set(app->componentManager.getPrefabID("sound"));
-	while (ent.next()) {
-		ent.refSound();
-		ent.Sound->speed += .05 * evnt->dt;
-		if (ent.Sound->speed > 1.5) {
-			ent.Sound->speed = -1.5;
+	Entity sound(app), listener(app);
+
+	vec3 diff, right, forward;
+	float dist, inv_sqr;
+	float leftVolume, rightVolume, forwardVolume;
+	float invFocus;
+
+	listener.set(app->componentManager.getPrefabID("camera"));
+	while (listener.next()) {
+		listener.refListener();
+		listener.refTransform();
+
+		invFocus = 1 - listener.Listener->focus;
+		right = vec3(1, 0, 0) * listener.Transform->rot;
+		forward = vec3(0, 0, -1) * listener.Transform->rot;
+
+		sound.set(app->componentManager.getPrefabID("sound"));
+		while (sound.next()) {
+			sound.refSound();
+			sound.refTransform();
+
+			
+			diff = sound.Transform->pos - listener.Transform->pos;
+			dist = length(diff);
+			if (dist) {
+				diff /= dist;
+
+				rightVolume = dot(right, diff);
+				leftVolume = -rightVolume;
+				forwardVolume = dot(forward, diff);
+				rightVolume = MAX(0, rightVolume * listener.Listener->focus + invFocus);
+				leftVolume = MAX(0, leftVolume * listener.Listener->focus + invFocus);
+				forwardVolume = MAX(0, forwardVolume * listener.Listener->focus + invFocus);
+
+				inv_sqr = sound.Sound->fade / (pow(dist, 2) + sound.Sound->fade);
+
+				leftVolume *= inv_sqr * forwardVolume;
+				rightVolume *= inv_sqr * forwardVolume;
+			}
+			else {
+				rightVolume = 1;
+				leftVolume = 1;
+			}
+			
+			sound.Sound->leftVolume = sound.Sound->volume * leftVolume;
+			sound.Sound->rightVolume = sound.Sound->volume * rightVolume;
 		}
-		auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(evnt->lastTime.time_since_epoch()).count();
-		float time = ms / 1000.0;
-		ent.Sound->leftVolume = ent.Sound->volume * abs(cos(time)) * .4 + .2;
-		ent.Sound->rightVolume = ent.Sound->volume * abs(sin(time)) * .4 + .2;
 	}
 }
 

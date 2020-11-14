@@ -30,12 +30,12 @@ void onInit(CB_PARAMS) {
 	comps->addPrefab("misc", 5, CharacterBit | InputBit | TransformBit | MeshBit | ChildBit);
 	comps->addPrefab("player", 1, CharacterBit | InputBit | TransformBit);
 	comps->addPrefab("model", 5000, TransformBit | MeshBit, PREFAB_MEM_PACK);
-	comps->addPrefab("camera", 1, CameraBit | InputBit | TransformBit | ChildBit);
+	comps->addPrefab("camera", 1, CameraBit | InputBit | TransformBit | ChildBit | ListenerBit);
 	comps->addPrefab("text", 3, TextBit | GuiBit | TransformBit);
 	comps->addPrefab("gui", 5, MeshBit | GuiBit | TransformBit);
 	comps->addPrefab("rigidbody", 20, MeshBit | TransformBit | RigidbodyBit);
 	comps->addPrefab("constraint", 20, TransformBit | ConstraintBit);
-	comps->addPrefab("sound", 10, TransformBit | SoundBit);
+	comps->addPrefab("sound", 10, TransformBit | SoundBit | MeshBit);
 	comps->recalculateMemory();
 
 	// 

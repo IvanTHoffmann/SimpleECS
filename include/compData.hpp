@@ -20,6 +20,7 @@ f(Gui) \
 f(Rigidbody) \
 f(Constraint) \
 f(Sound) \
+f(Listener) \
 
 // PHYSICS
 
@@ -107,17 +108,19 @@ struct COMP_TYPE(Text) { //
 
 // Audio
 
-#define SOUND_SPEED_PRECISION (1<<8)
-
 #define SOUND_GEN 0x1
 #define SOUND_LOOP 0x2
 
 struct COMP_TYPE(Sound) {
 	u8 flags;
 	u16 soundIndex; // Can refer to a loaded wav file or a sound generator
-	u64 sampleIndex;
-	float volume, leftVolume, rightVolume, speed;
-	i16 subIndex;
+	u32 sampleIndex;
+	float volume, leftVolume, rightVolume, speed, subIndex, fade;
+};
+
+struct COMP_TYPE(Listener) {
+	u8 flags;
+	float volume, focus;
 };
 
 // Convenience Variables

@@ -34,15 +34,69 @@ void initLoaderSystem(CB_PARAMS) {
 	assets->getFontIndex("cour");
 	//*/
 
-	// music
+	//* music
 	ent.getNew(app->componentManager.getPrefabID("sound"));
+	ent.refTransform();
+	ent.Transform->pos = vec3(0, 4, -15);
+	ent.Transform->scale = vec3(1, 1, 1);
+
 	ent.refSound();
 	ent.Sound->flags |= SOUND_LOOP;
-	ent.Sound->soundIndex = assets->getSoundIndex("relampago");
-	ent.Sound->volume = 1.0;
+	ent.Sound->soundIndex = assets->getSoundIndex("AnotherOne");
+	ent.Sound->volume = .6;
 	ent.Sound->sampleIndex = 0;
 	ent.Sound->subIndex = 0;
 	ent.Sound->speed = 1;
+	ent.Sound->fade = 150;
+
+	ent.refMesh();
+	ent.Mesh->meshId = app->assetManager.getModelIndex("sphere");
+	ent.Mesh->texId = app->assetManager.getTextureIndex("crate");
+	ent.Mesh->tiling = vec2(1);
+
+
+	//* music
+	ent.getNew(app->componentManager.getPrefabID("sound"));
+	ent.refTransform();
+	ent.Transform->pos = vec3(20, 4, 10);
+	ent.Transform->scale = vec3(.5);
+
+	ent.refSound();
+	ent.Sound->flags |= SOUND_LOOP;
+	ent.Sound->soundIndex = assets->getSoundIndex("SickBeat");
+	ent.Sound->volume = .6;
+	ent.Sound->sampleIndex = 0;
+	ent.Sound->subIndex = 0;
+	ent.Sound->speed = 1;
+	ent.Sound->fade = 150;
+
+	ent.refMesh();
+	ent.Mesh->meshId = app->assetManager.getModelIndex("sphere");
+	ent.Mesh->texId = app->assetManager.getTextureIndex("crate");
+	ent.Mesh->tiling = vec2(1);
+	//*/
+
+
+	//* music
+	ent.getNew(app->componentManager.getPrefabID("sound"));
+	ent.refTransform();
+	ent.Transform->pos = vec3(-20, 4, 10);
+	ent.Transform->scale = vec3(.5);
+
+	ent.refSound();
+	ent.Sound->flags |= SOUND_LOOP;
+	ent.Sound->soundIndex = assets->getSoundIndex("PlopXD");
+	ent.Sound->volume = .8;
+	ent.Sound->sampleIndex = 0;
+	ent.Sound->subIndex = 0;
+	ent.Sound->speed = 1;
+	ent.Sound->fade = 150;
+
+	ent.refMesh();
+	ent.Mesh->meshId = app->assetManager.getModelIndex("sphere");
+	ent.Mesh->texId = app->assetManager.getTextureIndex("crate");
+	ent.Mesh->tiling = vec2(1);
+	//*/
 
 	//* screen
 	ent.getNew(app->componentManager.getPrefabID("model"));
@@ -126,6 +180,10 @@ void initLoaderSystem(CB_PARAMS) {
 	ent.refChild();
 	ent.Child->parent = playerIndex;
 	ent.Child->offsetRot = {0, 0, 0};
+	ent.refListener();
+	ent.Listener->volume = .5;
+	ent.Listener->focus = .3;
+
 
 	// FBO Rect
 	ent.getNew(app->componentManager.getPrefabID("gui"));

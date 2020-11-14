@@ -92,7 +92,7 @@ void updateRenderSystem(CB_PARAMS) {
 		glEnable(GL_DEPTH_TEST);
 
 		ent.set();
-		while (ent.next(MeshBit, GuiBit)) {
+		while (ent.next(MeshBit | TransformBit, GuiBit)) {
 			ent.copyMesh();
 			glBindVertexArray(app->assetManager.models[ent.Mesh->meshId].vao);
 			glBindTexture(GL_TEXTURE_2D, app->assetManager.textures[ent.Mesh->texId].id);
