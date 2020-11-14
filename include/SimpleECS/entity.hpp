@@ -10,6 +10,8 @@
 #define SYNC_DECL(c) bool sync ## c();
 #define REF_DECL(c) bool ref ## c();
 
+
+
 /* TODO: 
 
 Make entity finctions safer. Several of them rely on the entity being valid and the component data packed.

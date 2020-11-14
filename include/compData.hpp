@@ -87,35 +87,37 @@ struct COMP_TYPE(Child){
 
 // GUI
 
-struct COMP_TYPE(Text) { // 
-	u8 flags;
-	u8 fontIndex;
-	u8 lineCount;
-	char str[16]; // TODO: replace with a pointer to memory stored in AppData
-	float fontSize;
-};
-
-// Audio
-
-#define SOUND_ACTIVE 0x1
-#define SOUND_PLAY 0x2
-#define SOUND_REVERSE 0x4
-#define SOUND_LOOP 0x8
-
-struct COMP_TYPE(Sound) {
-	u8 flags;
-	u16 soundIndex;
-	u32 sampleIndex;
-	float volume;
-};
-
 #define COMP_GUI_PIXEL_POS 0x1
 #define COMP_GUI_PIXEL_SCALE 0x2
 #define COMP_GUI_PIXEL_ANCHOR 0x4
 
 struct COMP_TYPE(Gui) {
 	u8 flags;
-	vec3 anchor, color;
+	vec3 anchor;
+	vec4 color;
+};
+
+struct COMP_TYPE(Text) { // 
+	u8 flags;
+	u8 fontIndex;
+	u8 lineCount;
+	char str[64]; // TODO: replace with a pointer to memory stored in AppData
+	float fontSize;
+};
+
+// Audio
+
+#define SOUND_SPEED_PRECISION (1<<8)
+
+#define SOUND_GEN 0x1
+#define SOUND_LOOP 0x2
+
+struct COMP_TYPE(Sound) {
+	u8 flags;
+	u16 soundIndex; // Can refer to a loaded wav file or a sound generator
+	u64 sampleIndex;
+	float volume, leftVolume, rightVolume, speed;
+	i16 subIndex;
 };
 
 // Convenience Variables

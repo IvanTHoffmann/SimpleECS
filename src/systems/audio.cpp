@@ -3,6 +3,8 @@
 
 #include "SimpleECS/application.hpp"
 #include "SimpleECS/entity.hpp"
+#include "SimpleECS/componentManager.hpp"
+#include "SimpleECS/util.hpp"
 
 
 // TODO: Support changing audio devices at runtime
@@ -23,10 +25,14 @@ static int paSoundCallback(
 
 	int16_t* out = (int16_t*)outputBuffer;
 
+	u32 nextIndex;
+
 	bool firstSound = true;
 	ent.set(app->componentManager.getPrefabID("sound"));
 	while (ent.next()) {
-		ent.refSound();
+		ent.copySound();
+		CONTINUE_IF_DISABLED(ent.Sound);
+
 		for (unsigned long i = 0; i < framesPerBuffer * 2; i+=2) {
 			if (firstSound) {
 				out[i] = 0;
@@ -35,15 +41,27 @@ static int paSoundCallback(
 
 			soundInfo = app->assetManager.getSound(ent.Sound->soundIndex);
 
-			if (ent.Sound->sampleIndex >= soundInfo->sampleCount) {
-				std::cout << "repeat\n";
-				//ent.destroy();
-				//break;
-				ent.Sound->sampleIndex = 0;
-			}
+			ent.Sound->subIndex += ent.Sound->speed * SOUND_SPEED_PRECISION;
+			nextIndex = ent.Sound->sampleIndex + ent.Sound->subIndex / SOUND_SPEED_PRECISION;
 
-			out[i+0] += soundInfo->data[ent.Sound->sampleIndex++] * ent.Sound->volume;
-			out[i+1] += soundInfo->data[ent.Sound->sampleIndex++] * ent.Sound->volume;
+			//PRINT_VAR(nextIndex, d);
+
+			if (nextIndex > soundInfo->sampleCount / 2) { // finished playing sample
+				ent.Sound->sampleIndex = (soundInfo->sampleCount / 2) * (ent.Sound->speed < 0);
+				ent.Sound->subIndex = 0;
+				if (!(ent.Sound->flags & SOUND_LOOP)) {
+					ent.Sound->flags |= COMP_DISABLED;
+					break;
+				}
+			}
+			else {
+				ent.Sound->sampleIndex = nextIndex;
+				ent.Sound->subIndex %= SOUND_SPEED_PRECISION;
+				//ent.Sound->subIndex -= SOUND_SPEED_PRECISION * (ent.Sound->speed < 0); // fixes negative modulo
+
+				out[i + 0] += soundInfo->data[ent.Sound->sampleIndex * 2] * ent.Sound->leftVolume;
+				out[i + 1] += soundInfo->data[ent.Sound->sampleIndex * 2 + 1] * ent.Sound->rightVolume;
+			}
 		}
 		ent.syncSound();
 		firstSound = false;
@@ -100,6 +118,22 @@ void initAudioSystem(CB_PARAMS) {
 
 	if (checkAudioError(Pa_SetStreamFinishedCallback(appData->audioInfo.stream, &AudioStreamFinished))) { return; }
 	if (checkAudioError(Pa_StartStream(appData->audioInfo.stream))) { return; }
+}
+
+void updateAudioSystem(CB_PARAMS) {
+	Entity ent(app);
+	ent.set(app->componentManager.getPrefabID("sound"));
+	while (ent.next()) {
+		ent.refSound();
+		ent.Sound->speed += .05 * evnt->dt;
+		if (ent.Sound->speed > 1.5) {
+			ent.Sound->speed = -1.5;
+		}
+		auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(evnt->lastTime.time_since_epoch()).count();
+		float time = ms / 1000.0;
+		ent.Sound->leftVolume = ent.Sound->volume * abs(cos(time)) * .4 + .2;
+		ent.Sound->rightVolume = ent.Sound->volume * abs(sin(time)) * .4 + .2;
+	}
 }
 
 void stopAudioSystem(CB_PARAMS) {

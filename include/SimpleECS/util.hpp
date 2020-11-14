@@ -51,3 +51,5 @@ public:
 	void clear();
 	void removeByName(std::string name);
 };
+
+#define PRINT_VAR(v, t) printf(#v ": %" #t "\n", v);

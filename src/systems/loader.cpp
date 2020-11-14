@@ -35,12 +35,14 @@ void initLoaderSystem(CB_PARAMS) {
 	//*/
 
 	// music
-
 	ent.getNew(app->componentManager.getPrefabID("sound"));
 	ent.refSound();
+	ent.Sound->flags |= SOUND_LOOP;
 	ent.Sound->soundIndex = assets->getSoundIndex("relampago");
-	ent.Sound->volume = 0.0;
+	ent.Sound->volume = 1.0;
 	ent.Sound->sampleIndex = 0;
+	ent.Sound->subIndex = 0;
+	ent.Sound->speed = 1;
 
 	//* screen
 	ent.getNew(app->componentManager.getPrefabID("model"));
@@ -136,7 +138,7 @@ void initLoaderSystem(CB_PARAMS) {
 		//ATTR_GUI_PIXEL_POS | 
 		//ATTR_GUI_PIXEL_SCALE;
 		//ATTR_GUI_PIXEL_ANCHOR;
-	ent.Gui->color = vec3(.8);
+	ent.Gui->color = vec4(.8, .8, .8, 1);
 	ent.Gui->anchor = vec3(0, 0, 0);
 	ent.refTransform();
 	ent.Transform->flags = 0;
@@ -151,7 +153,7 @@ void initLoaderSystem(CB_PARAMS) {
 	ent.Mesh->tiling = vec2(1);
 	ent.refGui();
 	ent.Gui->flags |= COMP_GUI_PIXEL_SCALE;
-	ent.Gui->color = vec3(1, 1, 1);
+	ent.Gui->color = vec4(1, 1, 1, 1);
 	ent.Gui->anchor = vec3(.5, .5, 0);
 	ent.refTransform();
 	ent.Transform->flags = 0;
@@ -164,13 +166,27 @@ void initLoaderSystem(CB_PARAMS) {
 	ent.refText();
 	ent.Text->fontSize = 50;
 	ent.Text->fontIndex = app->assetManager.getFontIndex("calibri");
-	//strcpy_s(text.str, "hello\0");
 	ent.refGui();
 	ent.Gui->flags = COMP_GUI_PIXEL_SCALE;
-	ent.Gui->color = vec3(0, 1, 0);
+	ent.Gui->color = vec4(0, 1, 0, 1);
 	ent.Gui->anchor = vec3(.5, 0, 0);
 	ent.refTransform();
 	ent.Transform->pos = vec3(.5, 0, 0);
+	ent.Transform->rot = vec3(0);
+	//*/
+
+	//* Controls
+	ent.getNew(app->componentManager.getPrefabID("text"));
+	ent.refText();
+	ent.Text->fontSize = 30;
+	ent.Text->fontIndex = app->assetManager.getFontIndex("calibri");
+	strcpy_s(ent.Text->str, " ESC - Toggle Window Focus\0");
+	ent.refGui();
+	ent.Gui->flags = COMP_GUI_PIXEL_SCALE;
+	ent.Gui->color = vec4(0, 1, 0, 1);
+	ent.Gui->anchor = vec3(0, 1, 0);
+	ent.refTransform();
+	ent.Transform->pos = vec3(0, 1, 0);
 	ent.Transform->rot = vec3(0);
 	//*/
 

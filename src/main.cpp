@@ -6,6 +6,15 @@
 
 /* TODO
 
+Write a function to convert inches to pixels
+
+Add features to the audio system such as...
+ -sound deactivation :|
+ -playback speed (+/-)
+ -3D sound
+ -Sound Generation
+
+
 Check data types regarding entity indices. Some functions may accept u16 where they should accept u32
 Hardcode some limits for how many entities/components are allowed
 Clean up engine code. Check for obsolete variables and places to optimize.

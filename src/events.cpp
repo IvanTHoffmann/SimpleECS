@@ -72,6 +72,7 @@ void onUpdate(CB_PARAMS) {
 	updateCameraSystem(CB_ARGS);
 	updateCharacterSystem(CB_ARGS);
 	updatePhysicsSystem(CB_ARGS);
+	updateAudioSystem(CB_ARGS);
 
 	evnt->deleted = false;
 	if (!appData->doubleBuf) {

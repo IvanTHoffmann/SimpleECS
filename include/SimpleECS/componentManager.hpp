@@ -12,6 +12,7 @@ class ComponentManager;
 #define	COMP_NO_SYNC 0x80 // This component can only be changed by direct reference. Changes to a copy of this component cannot be copied back to the original.
 #define	COMP_IS_COPY 0xf0 // This component is a copy of the original.
 
+#define CONTINUE_IF_DISABLED(c) if ((c)->flags & COMP_DISABLED) { continue; }
 
 // TODO: COMP_COUNT should be sent to the component manager at runtime to remove ecsConstants.hpp dependency
 
@@ -19,9 +20,10 @@ class ComponentManager;
 enum {
 	// The first two bits in the class flags are for the type of memory management.
 
+	// TODO: Implement these...
 	PREFAB_MEM_LIMIT,		// if space runs out, new entities will simply be ignored
-	PREFAB_MEM_OVERFLOW,		// if space runs out, new entities should be added to misc memory
-	PREFAB_MEM_OVERWRITE,	// if space runs out, the entity after the newest added entity will be overwritten.
+	PREFAB_MEM_OVERFLOW,	// if space runs out, new entities should be added to misc memory
+	PREFAB_MEM_OVERWRITE,	// if space runs out, the entity after the most recently added entity will be overwritten.
 	PREFAB_MEM_EXPAND,		// if space runs out, memory will be moved to expand the array.
 
 	// bit flags begin here

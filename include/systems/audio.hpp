@@ -1,8 +1,8 @@
 #pragma once
 
-#include "portaudio.h"
 #include "SimpleECS/assetManager.hpp"
 #include "events.hpp"
+#include "portaudio.h"
 
 #define FRAMES_PER_BUFFER 220
 
@@ -11,4 +11,5 @@ static void AudioStreamFinished(void* userData);
 int checkAudioError(PaError err);
 
 void initAudioSystem(CB_PARAMS);
+void updateAudioSystem(CB_PARAMS);
 void stopAudioSystem(CB_PARAMS);

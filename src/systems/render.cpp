@@ -156,7 +156,7 @@ void updateRenderSystem(CB_PARAMS) {
 		glBindTexture(GL_TEXTURE_2D, app->assetManager.textures[ent.Mesh->texId].id);
 
 		ent.copyGui();
-		glUniform3fv(shader->uniforms[U_COLOR], 1, value_ptr(ent.Gui->color));
+		glUniform4fv(shader->uniforms[U_COLOR], 1, value_ptr(ent.Gui->color));
 
 		ent.copyTransform();
 		matrix = mat4(1.0f);
@@ -197,7 +197,7 @@ void updateRenderSystem(CB_PARAMS) {
 	// DRAW TEXT
 	
 	ent.set(app->componentManager.getPrefabID("text"));
-	model = app->assetManager.models + app->assetManager.getModelIndex("rect");
+	model = app->assetManager.getModel("rect");
 	glBindVertexArray(model->vao); // rectangle mesh
 
 	TextureInfo* texture;
@@ -210,7 +210,7 @@ void updateRenderSystem(CB_PARAMS) {
 		glBindTexture(GL_TEXTURE_2D, texture->id);
 
 		ent.copyGui();
-		glUniform3fv(shader->uniforms[U_COLOR], 1, value_ptr(ent.Gui->color));
+		glUniform4fv(shader->uniforms[U_COLOR], 1, value_ptr(ent.Gui->color));
 
 		ent.copyTransform();
 		matrix = mat4(1.0f);
