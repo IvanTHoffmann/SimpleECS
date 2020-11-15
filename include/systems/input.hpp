@@ -1,9 +1,6 @@
 #pragma once
 
-#include "SimpleECS/util.hpp"
-#include "SimpleECS/eventManager.hpp"
-#include "events.hpp"
-
+#include "SimpleECS/simpleECS.hpp"
 #include "appData.hpp"
 
 // void lockCursor(GLFWwindow *window, InputInfo *inputInfo);

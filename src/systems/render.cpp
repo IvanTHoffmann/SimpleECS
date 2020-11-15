@@ -1,8 +1,6 @@
 #include "systems/render.hpp"
 #include "appData.hpp"
 
-#include "SimpleECS/application.hpp"
-#include "SimpleECS/entity.hpp"
 
 void initRenderSystem(CB_PARAMS) {
 	AppData* appData = (AppData*)app->getData();

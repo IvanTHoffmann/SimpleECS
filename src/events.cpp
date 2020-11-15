@@ -2,9 +2,7 @@
 #include "appData.hpp"
 #include "compData.hpp"
 
-#include "SimpleECS/application.hpp"
-#include "SimpleECS/entity.hpp"
-#include "SimpleECS/componentManager.hpp"
+#include "SimpleECS/simpleECS.hpp"
 
 #include "systems/render.hpp"
 #include "systems/input.hpp"

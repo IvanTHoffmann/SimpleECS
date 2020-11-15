@@ -1,6 +1,3 @@
-
-#include "SimpleECS/entity.hpp"
-
 #include "systems/camera.hpp"
 
 

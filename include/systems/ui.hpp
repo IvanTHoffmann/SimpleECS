@@ -1,5 +1,5 @@
 #pragma once
 
-#include "SimpleECS/eventManager.hpp"
+#include "SimpleECS/simpleECS.hpp"
 
 void updateUISystem(CB_PARAMS);

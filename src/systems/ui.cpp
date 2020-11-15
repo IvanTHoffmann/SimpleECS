@@ -1,9 +1,6 @@
 #include "systems/ui.hpp"
 #include "appData.hpp"
 
-#include "SimpleECS/util.hpp"
-#include "SimpleECS/entity.hpp"
-
 
 void updateUISystem(CB_PARAMS) {
 	AppData* appData = (AppData*)app->getData();

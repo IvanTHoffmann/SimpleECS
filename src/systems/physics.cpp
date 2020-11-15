@@ -1,7 +1,6 @@
 #include "systems/physics.hpp"
-#include "SimpleECS/entity.hpp"
-
 #include "appData.hpp"
+
 
 void initPhysicsSystem(CB_PARAMS) {
 	AppData* appData = (AppData*)app->getData();

@@ -1,11 +1,6 @@
 #include "systems/audio.hpp"
 #include "appData.hpp"
 
-#include "SimpleECS/application.hpp"
-#include "SimpleECS/entity.hpp"
-#include "SimpleECS/componentManager.hpp"
-#include "SimpleECS/util.hpp"
-
 // TODO: Support changing audio devices at runtime
 
 // PortAudio functions

@@ -1,6 +1,5 @@
 #pragma once
 
-#include "SimpleECS/util.hpp"
-#include "SimpleECS/eventManager.hpp"
+#include "SimpleECS/simpleECS.hpp"
 
 void updateCharacterSystem(CB_PARAMS);

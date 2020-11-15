@@ -1,7 +1,9 @@
-/.vs
+/.vs/*
 SimpleECS.sln
 SimpleECS.vcxproj
 SimpleECS.vcxproj.filters
 SimpleECS.vcxproj.user
-/_build
-/_int
+/_build/*
+/_int/*
+
+!assets/*

@@ -37,7 +37,7 @@ project "SimpleECS"
    objdir("!$(SolutionDir)_int\\$(Platform)_$(Configuration)")
 -- basedir("!$(SolutionDir)_build\\$(Platform)_$(Configuration)")
 
-   files { "include\\**.h", "include\\**.hpp", "src\\**.cpp", "misc\\**", "assets\\**" }
+   files {".gitignore", "include\\**.h", "include\\**.hpp", "src\\**.cpp", "misc\\**", "assets\\**" }
 
    filter "configurations:Debug"
       defines { "DEBUG" }

@@ -1,7 +1,6 @@
 #include "systems/input.hpp"
 
-#include "SimpleECS/application.hpp"
-#include "SimpleECS/entity.hpp"
+#include "events.hpp"
 
 
 void inputInit(InputInfo *inp) {

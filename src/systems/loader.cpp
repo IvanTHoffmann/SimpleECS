@@ -1,10 +1,6 @@
 #include "systems/loader.hpp"
 #include "appData.hpp"
 
-#include "SimpleECS/application.hpp"
-#include "SimpleECS/assetManager.hpp"
-#include "SimpleECS/entity.hpp"
-
 void initLoaderSystem(CB_PARAMS) {
 	AppData* appData = (AppData*)app->getData();
 
@@ -43,11 +39,11 @@ void initLoaderSystem(CB_PARAMS) {
 	ent.refSound();
 	ent.Sound->flags |= SOUND_LOOP;
 	ent.Sound->soundIndex = assets->getSoundIndex("AnotherOne");
-	ent.Sound->volume = .6;
+	ent.Sound->volume = .8;
 	ent.Sound->sampleIndex = 0;
 	ent.Sound->subIndex = 0;
 	ent.Sound->speed = 1;
-	ent.Sound->fade = 150;
+	ent.Sound->fade = 50;
 
 	ent.refMesh();
 	ent.Mesh->meshId = app->assetManager.getModelIndex("sphere");
@@ -64,11 +60,11 @@ void initLoaderSystem(CB_PARAMS) {
 	ent.refSound();
 	ent.Sound->flags |= SOUND_LOOP;
 	ent.Sound->soundIndex = assets->getSoundIndex("SickBeat");
-	ent.Sound->volume = .6;
+	ent.Sound->volume = .8;
 	ent.Sound->sampleIndex = 0;
 	ent.Sound->subIndex = 0;
 	ent.Sound->speed = 1;
-	ent.Sound->fade = 150;
+	ent.Sound->fade = 50;
 
 	ent.refMesh();
 	ent.Mesh->meshId = app->assetManager.getModelIndex("sphere");
@@ -90,7 +86,7 @@ void initLoaderSystem(CB_PARAMS) {
 	ent.Sound->sampleIndex = 0;
 	ent.Sound->subIndex = 0;
 	ent.Sound->speed = 1;
-	ent.Sound->fade = 150;
+	ent.Sound->fade = 50;
 
 	ent.refMesh();
 	ent.Mesh->meshId = app->assetManager.getModelIndex("sphere");
@@ -145,12 +141,12 @@ void initLoaderSystem(CB_PARAMS) {
 	ent.getNew(app->componentManager.getPrefabID("model"));
 	
 	ent.refTransform();
-	ent.Transform->pos = vec3(0, 50, 0);
-	ent.Transform->scale = vec3(100, 100, 100);
+	ent.Transform->pos = vec3(0, 0, 0);
+	ent.Transform->scale = vec3(30);
 	ent.refMesh();
-	ent.Mesh->meshId = app->assetManager.getModelIndex("cube");
+	ent.Mesh->meshId = app->assetManager.getModelIndex("map");
 	ent.Mesh->texId = app->assetManager.getTextureIndex("cobble");
-	ent.Mesh->tiling = vec2(4);
+	ent.Mesh->tiling = vec2(20);
 
 	// Player
 	ent.getNew(app->componentManager.getPrefabID("player"));
