@@ -5,3 +5,4 @@ SimpleECS.vcxproj.filters
 SimpleECS.vcxproj.user
 /_build/*
 /_int/*
+/_misc/*
