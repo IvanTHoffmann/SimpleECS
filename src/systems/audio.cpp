@@ -17,11 +17,15 @@ static int paSoundCallback(
 
 	int16_t* out = (int16_t*)outputBuffer;
 
+	i16* p;
+
 	bool firstSound = true;
 	ent.set(app->componentManager.getPrefabID("sound"));
 	while (ent.next()) {
 		ent.copySound();
 		CONTINUE_IF_DISABLED(ent.Sound);
+		soundInfo = app->assetManager.getSound(ent.Sound->soundIndex);
+		p = (i16*)(app->memoryManager.memStart + soundInfo->data);
 
 		for (unsigned long i = 0; i < framesPerBuffer * 2; i+=2) {
 			if (firstSound) {
@@ -46,8 +50,8 @@ static int paSoundCallback(
 				ent.Sound->subIndex = MOD1(ent.Sound->subIndex);
 			}
 
-			out[i + 0] += soundInfo->data[ent.Sound->sampleIndex * soundInfo->numChannels] * ent.Sound->leftVolume;
-			out[i + 1] += soundInfo->data[ent.Sound->sampleIndex * soundInfo->numChannels + (soundInfo->numChannels > 1)] * ent.Sound->rightVolume;
+			out[i + 0] += p[ent.Sound->sampleIndex * soundInfo->numChannels] * ent.Sound->leftVolume;
+			out[i + 1] += p[ent.Sound->sampleIndex * soundInfo->numChannels + (soundInfo->numChannels > 1)] * ent.Sound->rightVolume;
 		}
 		ent.syncSound();
 		firstSound = false;
@@ -147,8 +151,8 @@ void updateAudioSystem(CB_PARAMS) {
 				rightVolume *= inv_sqr * forwardVolume;
 			}
 			else {
-				rightVolume = 1;
-				leftVolume = 1;
+				rightVolume = listener.Listener->volume;
+				leftVolume = listener.Listener->volume;
 			}
 			
 			sound.Sound->leftVolume = sound.Sound->volume * leftVolume;

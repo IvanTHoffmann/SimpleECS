@@ -10,8 +10,12 @@ ComponentManager::ComponentManager() {
 
 ComponentManager::~ComponentManager() {
 	if (dataSize) {
-		free(data);
+		app->memoryManager.freeTo((u8*)data);
 	}
+}
+
+void ComponentManager::setApp(Application* _app) {
+	app = _app;
 }
 
 u16 ComponentManager::addPrefab(std::string name, u32 capacity, compMask mask, u8 flags) {
@@ -55,6 +59,8 @@ void ComponentManager::recalculateMemory() {
 	}
 
 	// ALLOCATE MEMORY
+
+	/*
 	if (bytes > dataSize) {
 		if (dataSize) {
 			u8* newData = (u8*)realloc(data, bytes);
@@ -69,6 +75,18 @@ void ComponentManager::recalculateMemory() {
 		}
 		dataSize = bytes;
 	}
+	*/
+
+	//*
+	if (data) {
+		app->memoryManager.freeTo(data);
+	}
+	std::cout << "Components (" << bytes << ") bytes\n";
+	data = (u8*)app->memoryManager.getBlock(bytes);
+	for (u32 i = 0; i < bytes; i++) {
+		data[i] = 0;
+	}
+	//*/
 }
 
 // TODO: finish removePrefab functions

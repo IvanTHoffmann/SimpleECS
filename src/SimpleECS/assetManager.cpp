@@ -35,9 +35,10 @@ AssetManager::AssetManager() {
 }
 
 AssetManager::~AssetManager() {
+	/*
 	for (u16 i = 0; i < MAX_FONTS; i++) {
 		if (fonts[i].flags & ASSET_ACTIVE) {
-			free(fonts[i].offsets);
+			free((u8*)fonts[i].offsets);
 		}
 	}
 	for (u16 i = 0; i < MAX_SOUNDS; i++) {
@@ -45,11 +46,12 @@ AssetManager::~AssetManager() {
 			free(sounds[i].data);
 		}
 	}
+	*/
 }
 
 
 void AssetManager::setApp(Application* _app) {
-	//app = _app;
+	app = _app;
 }
 
 u16 AssetManager::loadFbo(std::string name, u16 w, u16 h) {
@@ -157,7 +159,8 @@ void AssetManager::loadTexture(TextureInfo* texInfo, std::string filename, GLboo
 
 	uint32_t bytesPerPixel = (bitsPerPixel / 8);
 	uint32_t dataSize = (texInfo->w * texInfo->h) * bytesPerPixel;
-	GLubyte* data = (GLubyte*)malloc(dataSize);
+	GLubyte* data = (GLubyte*)app->memoryManager.getVolatileBlock(dataSize);
+	//GLubyte* data = (GLubyte*)malloc(dataSize);
 
 	uint32_t rowSize = (bytesPerPixel * texInfo->w + 3) / 4 * 4;
 	for (uint32_t row = 0; row < texInfo->h; row++) {
@@ -191,7 +194,7 @@ void AssetManager::loadTexture(TextureInfo* texInfo, std::string filename, GLboo
 
 	finishTexture(linear);
 
-	free(data);
+	//free((u8*)data);
 }
 
 void AssetManager::compileShader(ShaderInfo* shaderInfo, std::string vert, std::string frag) {
@@ -227,7 +230,8 @@ GLuint AssetManager::loadShader(std::string filename, const GLuint shaderType) {
 			fileSize++;
 		}
 
-		buffer = (char*)calloc(fileSize + 1, sizeof(char));
+		buffer = (char*)app->memoryManager.getVolatileBlock((fileSize + 1) * sizeof(char));
+		//buffer = (char*)malloc((fileSize + 1) * sizeof(char));
 
 		fsetpos(f, &fpos);
 		fread_s(buffer, fileSize, sizeof(char), fileSize, f);
@@ -245,7 +249,7 @@ GLuint AssetManager::loadShader(std::string filename, const GLuint shaderType) {
 	GLuint shaderId = glCreateShader(shaderType);
 	glShaderSource(shaderId, 1, &buffer, NULL);
 	glCompileShader(shaderId);
-	free(buffer);
+	//free((u8*)buffer);
 
 	// ERROR CHECKING
 	GLint isCompiled = 0;
@@ -256,8 +260,9 @@ GLuint AssetManager::loadShader(std::string filename, const GLuint shaderType) {
 		glGetShaderiv(shaderId, GL_INFO_LOG_LENGTH, &maxLength);
 
 		// The maxLength includes the NULL character
-		GLchar* errorLog = (GLchar*)calloc(maxLength, sizeof(GLchar));
+		GLchar* errorLog = (GLchar*)malloc(maxLength * sizeof(GLchar));
 		glGetShaderInfoLog(shaderId, maxLength, &maxLength, errorLog);
+		free(errorLog);
 
 		// Provide the infolog in whatever manor you deem best.
 		// Exit with failure.
@@ -276,7 +281,8 @@ void AssetManager::loadMODEL(ModelInfo* modelInfo, std::string filename) {
 
 	// read vertex count
 	fread_s(&modelInfo->vertexCount, sizeof(uint16_t), sizeof(uint16_t), 1, fp);
-	Vertex* vertices = (Vertex*)calloc(modelInfo->vertexCount, sizeof(Vertex));
+	Vertex* vertices = (Vertex*)app->memoryManager.getVolatileBlock(modelInfo->vertexCount * sizeof(Vertex));
+	//Vertex* vertices = (Vertex*)malloc(modelInfo->vertexCount * sizeof(Vertex));
 
 	uint16_t vectorCount, refIndex;
 	float vectorData[3];
@@ -311,7 +317,7 @@ void AssetManager::loadMODEL(ModelInfo* modelInfo, std::string filename) {
 	fclose(fp);
 
 	modelInfo->vao = loadVao(vertices, modelInfo->vertexCount);
-	free(vertices);
+	//free((u8*)vertices);
 }
 
 GLuint AssetManager::loadVao(Vertex* vertices, GLuint vertexCount) {
@@ -362,9 +368,12 @@ void AssetManager::loadFont(FontInfo* fontInfo, std::string fontName, GLboolean 
 	FILE* f;
 	fopen_s(&f, &(ASSETS_PATH "fonts\\" + fontName + ".offs")[0], "rb");
 	fread_s(&(fontInfo->charCount), sizeof(uint16_t), sizeof(uint16_t), 1, f);
-	fontInfo->offsets = (uint16_t*)calloc(fontInfo->charCount + 1, sizeof(uint16_t));
-	fread_s(fontInfo->offsets, sizeof(uint16_t) * fontInfo->charCount, sizeof(uint16_t), fontInfo->charCount, f);
-	fontInfo->offsets[fontInfo->charCount] = textures[fontInfo->texIndex].w; // this is an extra offset for calculating the width of the last symbol
+	size_t arraySize = ((size_t)fontInfo->charCount + 1) * sizeof(u16);
+	fontInfo->offset_loc = app->memoryManager.getHead();
+	u16* p = (u16*)app->memoryManager.getBlock(arraySize);
+	//fontInfo->offsets = (u16*)malloc(arraySize);
+	fread_s(p, arraySize, sizeof(u16), fontInfo->charCount, f);
+	p[fontInfo->charCount] = textures[fontInfo->texIndex].w; // this is an extra offset for calculating the width of the last symbol
 	fclose(f);
 }
 
@@ -422,11 +431,10 @@ void AssetManager::loadWAV(SoundInfo* soundInfo, std::string filename) {
 		}
 		else if (strCmp4(chunkName, "data")) {
 			soundInfo->sampleCount = subChunkSize / soundInfo->bytesPerSample;
-			if (!(soundInfo->data = (int16_t*)malloc(subChunkSize))) {
-				puts("ERROR: malloc didnt work");
-				return;
-			}
-			fread_s(soundInfo->data, subChunkSize, soundInfo->bytesPerSample, soundInfo->sampleCount, f);
+			soundInfo->data = app->memoryManager.getHead();
+			i16* p = (i16*)app->memoryManager.getBlock(subChunkSize);
+			//soundInfo->data = (i16*)malloc(subChunkSize);
+			fread_s(p, subChunkSize, soundInfo->bytesPerSample, soundInfo->sampleCount, f);
 			break;
 		}
 		else {
@@ -566,6 +574,8 @@ vec3 AssetManager::getTextSize(std::string str, u16 fontIndex) {
 	FontInfo* font = fonts + fontIndex;
 	TextureInfo* texture = textures + font->texIndex;
 
+	u16* p = (u16*)(app->memoryManager.memStart + font->offset_loc);
+
 	float width = 0;
 	vec3 size = vec3(0, 1, 0);
 	u8 i = 0;
@@ -576,7 +586,7 @@ vec3 AssetManager::getTextSize(std::string str, u16 fontIndex) {
 			size.y++;
 		}
 		else {
-			width += (font->offsets[str[i] - 31] - font->offsets[str[i] - 32] - 1) / (float)texture->h;
+			width += (p[str[i] - 31] - p[str[i] - 32] - 1) / (float)texture->h;
 		}
 		i++;
 	}

@@ -26,6 +26,7 @@ struct Event {
 
 class EventManager {
 private:
+	Application* app;
 	Event events[MAX_EVENTS], newEvents[MAX_NEW_EVENTS];
 	u8 newEventCount;
 
@@ -34,6 +35,7 @@ private:
 public:
 	EventManager();
 	~EventManager();
+	void setApp(Application* _app);
 
 	/*
 	void setEventsCapacity(u16 n);

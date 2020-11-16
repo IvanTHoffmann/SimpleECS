@@ -37,14 +37,14 @@ Components
 
 class MemoryManager {
 private:
-	u8 *memStart;
 	size_t head, memSize;
 
 public:
+	u8 *memStart;
 	MemoryManager();
 	~MemoryManager();
 
-	void* getHead();
+	size_t getHead();
 	void* getMemStart();
 
 	void freeTo(u8*);
@@ -53,4 +53,7 @@ public:
 	bool inMemory(u8*);
 
 	void* getBlock(size_t);
+	void* getVolatileBlock(size_t);
+
+	void printMemory(size_t);
 };

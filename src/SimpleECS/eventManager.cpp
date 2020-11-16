@@ -20,6 +20,11 @@ EventManager::~EventManager() {
 	
 }
 
+
+void EventManager::setApp(Application* _app) {
+	app = _app;
+}
+
 /*
 void EventManager::setEventsCapacity(u16 n) {
 	if (eventsCapacity) {

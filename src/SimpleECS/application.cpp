@@ -4,6 +4,9 @@
 Application::Application(void* d) {
 	data = d;
 	running = false;
+	assetManager.setApp(this);
+	componentManager.setApp(this);
+	eventManager.setApp(this);
 }
 
 Application::~Application() {

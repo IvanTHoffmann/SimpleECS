@@ -54,7 +54,8 @@ typedef struct {
 typedef struct {
 	u8 flags;
 	u8 texIndex;
-	uint16_t* offsets, charCount;
+	u16 charCount;
+	size_t offset_loc; // address of u16 array
 } FontInfo;
 
 struct SoundInfo { // WAV file must have int16 sample size and 44100 sample rate to be played correctly
@@ -69,7 +70,7 @@ struct SoundInfo { // WAV file must have int16 sample size and 44100 sample rate
 	u32 sampleCount;
 	char format[4];
 	u8 bytesPerSample;
-	int16_t* data;
+	size_t data; // address of i16 array
 };
 
 // TODO: These should be user defined variables
@@ -85,7 +86,7 @@ struct SoundInfo { // WAV file must have int16 sample size and 44100 sample rate
 
 class AssetManager {
 private:
-	//Application* app;
+	Application* app;
 	nameMap fboNames, shaderNames, modelNames, textureNames, fontNames, soundNames;
 
 public:

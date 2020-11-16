@@ -10,26 +10,6 @@ void initLoaderSystem(CB_PARAMS) {
 	assets->loadFbo("fbo-copy", 1920, 1000);
 	assets->loadFbo("fbo-default", 1920, 1000);
 
-	// Pre-loading assets isn't necessary, but we should keep track of the assets we use. We might want to free gpu memory between levels.
-	/* 
-	assets->getShaderIndex("simple");
-	assets->getShaderIndex("ui");
-
-	assets->getModelIndex("wheel");
-	assets->getModelIndex("cube");
-	assets->getModelIndex("rect");
-	assets->getModelIndex("crate");
-	assets->getModelIndex("sphere");
-
-	assets->getTextureIndex("boop");
-	assets->getTextureIndex("crosshair");
-	assets->getTextureIndex("cobble");
-	assets->getTextureIndex("crate");
-
-	assets->getFontIndex("calibri");
-	assets->getFontIndex("cour");
-	//*/
-
 	//* music
 	ent.getNew(app->componentManager.getPrefabID("sound"));
 	ent.refTransform();
@@ -46,8 +26,8 @@ void initLoaderSystem(CB_PARAMS) {
 	ent.Sound->fade = 50;
 
 	ent.refMesh();
-	ent.Mesh->meshId = app->assetManager.getModelIndex("sphere");
-	ent.Mesh->texId = app->assetManager.getTextureIndex("crate");
+	ent.Mesh->meshId = assets->getModelIndex("sphere");
+	ent.Mesh->texId = assets->getTextureIndex("crate");
 	ent.Mesh->tiling = vec2(1);
 
 
@@ -67,8 +47,8 @@ void initLoaderSystem(CB_PARAMS) {
 	ent.Sound->fade = 50;
 
 	ent.refMesh();
-	ent.Mesh->meshId = app->assetManager.getModelIndex("sphere");
-	ent.Mesh->texId = app->assetManager.getTextureIndex("crate");
+	ent.Mesh->meshId = assets->getModelIndex("sphere");
+	ent.Mesh->texId = assets->getTextureIndex("crate");
 	ent.Mesh->tiling = vec2(1);
 	//*/
 
@@ -89,8 +69,8 @@ void initLoaderSystem(CB_PARAMS) {
 	ent.Sound->fade = 50;
 
 	ent.refMesh();
-	ent.Mesh->meshId = app->assetManager.getModelIndex("sphere");
-	ent.Mesh->texId = app->assetManager.getTextureIndex("crate");
+	ent.Mesh->meshId = assets->getModelIndex("sphere");
+	ent.Mesh->texId = assets->getTextureIndex("crate");
 	ent.Mesh->tiling = vec2(1);
 	//*/
 
@@ -101,8 +81,8 @@ void initLoaderSystem(CB_PARAMS) {
 	ent.Transform->pos = vec3(-5, 0, -15);
 	ent.Transform->scale = vec3(10, 5.2, 1);
 	ent.refMesh();
-	ent.Mesh->meshId = app->assetManager.getModelIndex("rect");
-	ent.Mesh->texId = app->assetManager.getTextureIndex("fbo-copy");
+	ent.Mesh->meshId = assets->getModelIndex("rect");
+	ent.Mesh->texId = assets->getTextureIndex("fbo-copy");
 	ent.Mesh->tiling = vec2(1);
 	//*/ 
 
@@ -116,8 +96,8 @@ void initLoaderSystem(CB_PARAMS) {
 		ent.Transform->rot = quat(1, 0, 0, 0);
 		ent.Transform->scale = vec3(2);
 		ent.refMesh();
-		ent.Mesh->meshId = app->assetManager.getModelIndex("sphere");
-		ent.Mesh->texId = app->assetManager.getTextureIndex("crate");
+		ent.Mesh->meshId = assets->getModelIndex("sphere");
+		ent.Mesh->texId = assets->getTextureIndex("crate");
 		ent.Mesh->tiling = vec2(1);
 
 		curBodyIndex = ent.getGlobalIndex();
@@ -144,8 +124,8 @@ void initLoaderSystem(CB_PARAMS) {
 	ent.Transform->pos = vec3(0, 0, 0);
 	ent.Transform->scale = vec3(30);
 	ent.refMesh();
-	ent.Mesh->meshId = app->assetManager.getModelIndex("map");
-	ent.Mesh->texId = app->assetManager.getTextureIndex("cobble");
+	ent.Mesh->meshId = assets->getModelIndex("map");
+	ent.Mesh->texId = assets->getTextureIndex("cobble");
 	ent.Mesh->tiling = vec2(20);
 
 	// Player
@@ -167,7 +147,7 @@ void initLoaderSystem(CB_PARAMS) {
 	ent.refTransform();
 	ent.Transform->scale = vec3(1);
 	ent.refCamera();
-	ent.Camera->fboId = app->assetManager.getFboIndex("fbo-default");
+	ent.Camera->fboId = assets->getFboIndex("fbo-default");
 	ent.Camera->fov = 60.0f * TO_RADS;
 	ent.refInput();
 	ent.Input->controllerId = 0;
@@ -184,8 +164,8 @@ void initLoaderSystem(CB_PARAMS) {
 	// FBO Rect
 	ent.getNew(app->componentManager.getPrefabID("gui"));
 	ent.refMesh();
-	ent.Mesh->meshId = app->assetManager.getModelIndex("rect");
-	ent.Mesh->texId = app->assetManager.getTextureIndex("fbo-default");
+	ent.Mesh->meshId = assets->getModelIndex("rect");
+	ent.Mesh->texId = assets->getTextureIndex("fbo-default");
 	ent.Mesh->tiling = vec2(1);
 	ent.refGui();
 	ent.Gui->flags |= 0;
@@ -202,8 +182,8 @@ void initLoaderSystem(CB_PARAMS) {
 	//* crosshair
 	ent.getNew(app->componentManager.getPrefabID("gui"));
 	ent.refMesh();
-	ent.Mesh->meshId = app->assetManager.getModelIndex("rect");
-	ent.Mesh->texId = app->assetManager.getTextureIndex("crosshair"); 
+	ent.Mesh->meshId = assets->getModelIndex("rect");
+	ent.Mesh->texId = assets->getTextureIndex("crosshair"); 
 	ent.Mesh->tiling = vec2(1);
 	ent.refGui();
 	ent.Gui->flags |= COMP_GUI_PIXEL_SCALE;
@@ -219,7 +199,7 @@ void initLoaderSystem(CB_PARAMS) {
 	ent.getNew(app->componentManager.getPrefabID("text"));
 	ent.refText();
 	ent.Text->fontSize = 50;
-	ent.Text->fontIndex = app->assetManager.getFontIndex("calibri");
+	ent.Text->fontIndex = assets->getFontIndex("calibri");
 	ent.refGui();
 	ent.Gui->flags = COMP_GUI_PIXEL_SCALE;
 	ent.Gui->color = vec4(0, 1, 0, 1);
@@ -233,7 +213,7 @@ void initLoaderSystem(CB_PARAMS) {
 	ent.getNew(app->componentManager.getPrefabID("text"));
 	ent.refText();
 	ent.Text->fontSize = 30;
-	ent.Text->fontIndex = app->assetManager.getFontIndex("calibri");
+	ent.Text->fontIndex = assets->getFontIndex("calibri");
 	strcpy_s(ent.Text->str, " ESC - Toggle Window Focus\0");
 	ent.refGui();
 	ent.Gui->flags = COMP_GUI_PIXEL_SCALE;

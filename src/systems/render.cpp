@@ -200,6 +200,8 @@ void updateRenderSystem(CB_PARAMS) {
 
 	TextureInfo* texture;
 
+	u16* p;
+
 	while (ent.next()) {
 		ent.copyText();
 		font = app->assetManager.getFont(ent.Text->fontIndex);
@@ -241,6 +243,8 @@ void updateRenderSystem(CB_PARAMS) {
 		vec3 bottomLeft = ent.Transform->pos - ent.Gui->anchor * ent.Transform->scale;
 		vec2 rectSize = { 0, matrix[1][1] / ent.Text->lineCount };
 
+		p = (u16*)(app->memoryManager.memStart + font->offset_loc);
+
 		for (uint8_t i = 0; ent.Text->str[i] != '\0'; i++) {
 			switch (ent.Text->str[i]) {
 			case '\n':
@@ -250,9 +254,9 @@ void updateRenderSystem(CB_PARAMS) {
 			default:
 				c = ent.Text->str[i] - 32;
 				if (0 <= c && c < font->charCount) {
-					framePos.x = font->offsets[c] / (float)texture->w;
+					framePos.x = p[c] / (float)texture->w;
 
-					charWidth = font->offsets[c + 1] - font->offsets[c] - 1;
+					charWidth = p[c + 1] - p[c] - 1;
 					frameSize.x = charWidth / texture->w;
 
 					rectSize.x = rectSize.y * charWidth / texture->h;

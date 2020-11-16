@@ -1,5 +1,6 @@
 #pragma once
 
+#include "SimpleECS/decl.hpp"
 #include "compData.hpp" // TODO: Send COMP_COUNT to the component manager at runtime and remove this
 
 #define compMask std::bitset<COMP_COUNT>
@@ -10,8 +11,6 @@
 #define	COMP_IS_COPY 0xf0 // This component is a copy of the original.
 
 #define CONTINUE_IF_DISABLED(c) if ((c)->flags & COMP_DISABLED) { continue; }
-
-
 
 enum {
 	// The first two bits in the class flags are for the type of memory management.
@@ -44,6 +43,7 @@ struct PrefabData {
 
 class ComponentManager {
 private:
+	Application* app;
 	u8* data; // pointer to the beggining of component data
 	u32 dataSize;
 	u32 arrays[COMP_COUNT]; // logs where each component array begins in data
@@ -59,6 +59,7 @@ public:
 	
 	ComponentManager();
 	~ComponentManager();
+	void setApp(Application* _app);
 
 	u8 getPrefabCount() { return prefabCount; }
 	u16 addPrefab(std::string name, u32 capacity, compMask mask, u8 flags = 0);

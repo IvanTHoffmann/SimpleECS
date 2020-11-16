@@ -19,15 +19,65 @@
 
 
 void onInit(CB_PARAMS) {
+
 	Entity ent(app);
 
 	ComponentManager* comps = &app->componentManager;
+	AssetManager* assets = &app->assetManager;
+	AppData *appData = (AppData*)app->getData();
+	appData->maxDt = 1000 / 20.0f;
+	appData->doubleBuf = false;
+	appData->fpsSum = 0;
+
+	initRenderSystem(CB_ARGS);
+	// Pre-loading assets isn't necessary, but we should keep track of the assets we use. We might want to free gpu memory between levels.
+	//*
+	std::cout << "simple\n";
+	assets->getShaderIndex("simple");
+	std::cout << "ui\n";
+	assets->getShaderIndex("ui");
+
+	std::cout << "wheel\n";
+	assets->getModelIndex("wheel");
+	std::cout << "cube\n";
+	assets->getModelIndex("cube");
+	std::cout << "rect\n";
+	assets->getModelIndex("rect");
+	std::cout << "crate\n";
+	assets->getModelIndex("crate");
+	std::cout << "sphere\n";
+	assets->getModelIndex("sphere");
+	std::cout << "map\n";
+	assets->getModelIndex("map");
+
+	std::cout << "boop\n";
+	assets->getTextureIndex("boop");
+	std::cout << "crosshair\n";
+	assets->getTextureIndex("crosshair");
+	std::cout << "cobble\n";
+	assets->getTextureIndex("cobble");
+	std::cout << "crate\n";
+	assets->getTextureIndex("crate");
+
+	std::cout << "calibri\n";
+	assets->getFontIndex("calibri");
+	//std::cout << "cour\n";
+	//assets->getFontIndex("cour");
+
+	std::cout << "anotherone\n";
+	assets->getSoundIndex("music/AnotherOne");
+	std::cout << "plopxd\n";
+	assets->getSoundIndex("music/PlopXD");
+	std::cout << "sickbeat\n";
+	assets->getSoundIndex("music/SickBeat");
+
+	//*/
 
 	// register classes
 
 	comps->addPrefab("misc", 5, CharacterBit | InputBit | TransformBit | MeshBit | ChildBit);
 	comps->addPrefab("player", 1, CharacterBit | InputBit | TransformBit);
-	comps->addPrefab("model", 5000, TransformBit | MeshBit, PREFAB_MEM_PACK);
+	comps->addPrefab("model", 10, TransformBit | MeshBit, PREFAB_MEM_PACK);
 	comps->addPrefab("camera", 1, CameraBit | InputBit | TransformBit | ChildBit | ListenerBit);
 	comps->addPrefab("text", 3, TextBit | GuiBit | TransformBit);
 	comps->addPrefab("gui", 5, MeshBit | GuiBit | TransformBit);
@@ -38,13 +88,8 @@ void onInit(CB_PARAMS) {
 
 	// 
 	
-	AppData *appData = (AppData*)app->getData();
-	appData->maxDt = 1000 / 20.0f;
-	appData->doubleBuf = false;
-	appData->fpsSum = 0;
 
 	initInputSystem(CB_ARGS);
-	initRenderSystem(CB_ARGS);
 	initLoaderSystem(CB_ARGS);
 	initPhysicsSystem(CB_ARGS);
 	initAudioSystem(CB_ARGS);
