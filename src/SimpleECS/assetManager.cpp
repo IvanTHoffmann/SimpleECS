@@ -1,4 +1,4 @@
-#include "SimpleECS/assetManager.hpp"
+#include "SimpleECS/simpleECS.hpp"
 
 
 AssetManager::AssetManager() {
@@ -45,6 +45,11 @@ AssetManager::~AssetManager() {
 			free(sounds[i].data);
 		}
 	}
+}
+
+
+void AssetManager::setApp(Application* _app) {
+	//app = _app;
 }
 
 u16 AssetManager::loadFbo(std::string name, u16 w, u16 h) {

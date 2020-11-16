@@ -42,5 +42,5 @@ struct AppData {
 	AudioInfo audioInfo;
 
 	bool doubleBuf;
-	float dtHistory[10];
+	u16 fpsSum;
 };

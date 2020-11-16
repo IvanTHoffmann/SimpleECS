@@ -14,7 +14,7 @@
 #include "systems/audio.hpp"
 
 
-// TODO: Note that you don't need to declare system callback functions with CB_PARAMS. 
+// Note that you don't need to declare system callback functions with CB_PARAMS. 
 // They are not being stored or referenced by function pointers. It is convenient though.
 
 
@@ -40,7 +40,8 @@ void onInit(CB_PARAMS) {
 	
 	AppData *appData = (AppData*)app->getData();
 	appData->maxDt = 1000 / 20.0f;
-	appData->doubleBuf = true;
+	appData->doubleBuf = false;
+	appData->fpsSum = 0;
 
 	initInputSystem(CB_ARGS);
 	initRenderSystem(CB_ARGS);
@@ -74,7 +75,7 @@ void onUpdate(CB_PARAMS) {
 
 	evnt->deleted = false;
 	if (!appData->doubleBuf) {
-		evnt->targetTime = evnt->lastTime + 10 * MILLISECOND; // TODO: set framerate in a more flexible way
+		evnt->targetTime = evnt->lastTime + 16 * MILLISECOND; // TODO: set framerate in a more flexible way
 	}
 }
 

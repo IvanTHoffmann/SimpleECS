@@ -1,4 +1,4 @@
-#include "SimpleECS/eventManager.hpp"
+#include "SimpleECS/simpleECS.hpp"
 
 
 EventManager::EventManager() {

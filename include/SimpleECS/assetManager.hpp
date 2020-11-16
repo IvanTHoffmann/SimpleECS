@@ -1,6 +1,7 @@
 #pragma once
 
 #include "SimpleECS/util.hpp"
+#include "SimpleECS/decl.hpp"
 
 enum Uniforms {
 	U_MODEL,
@@ -84,6 +85,7 @@ struct SoundInfo { // WAV file must have int16 sample size and 44100 sample rate
 
 class AssetManager {
 private:
+	//Application* app;
 	nameMap fboNames, shaderNames, modelNames, textureNames, fontNames, soundNames;
 
 public:
@@ -96,6 +98,8 @@ public:
 
 	AssetManager();
 	~AssetManager();
+
+	void setApp(Application* _app);
 
 	u16 loadFbo(std::string name, u16 w, u16 h);
 

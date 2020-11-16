@@ -1,8 +1,9 @@
 #pragma once
 
-#include "util.hpp"
-#include "SimpleECS/application.hpp"
-#include "compData.hpp" // TODO: remove depenency if possible
+#include "SimpleECS/componentManager.hpp"
+#include "SimpleECS/decl.hpp"
+
+#include "compData.hpp" // TODO: remove dependency if possible
 
 #define COMP_VAR(c) COMP_TYPE(c) c ## Copy;
 #define COMP_PTR(c) COMP_TYPE(c)* c;
@@ -12,10 +13,11 @@
 
 
 
-/* TODO: 
+/* TODO: Entity
 
 Make entity finctions safer. Several of them rely on the entity being valid and the component data packed.
 Consider writing general copy, sync, and ref functions accepting bitmasks.
+Use the mask variable or get rid of it
 
 //*/
 class Entity {
@@ -38,13 +40,13 @@ public:
 	bool destroy();
 	bool byName(std::string name);
 	bool byIndex(u32 globalIndex);
-	u16 getIndex() { return index; }
+	u32 getIndex() { return index; }
 	u16 getPrefab() { return prefabID; }
-	u16 getGlobalIndex() { return app->componentManager.getPrefab(prefabID)->entityIndex + index; }
+	u32 getGlobalIndex();
 
 	void setName(std::string name);
 
-	compMask mask;
+	//compMask mask;
 	FOREACH_COMP(COMP_PTR);
 	FOREACH_COMP(COPY_DECL);
 	FOREACH_COMP(SYNC_DECL);

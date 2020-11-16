@@ -1,6 +1,5 @@
-#include "SimpleECS/entity.hpp"
+#include "SimpleECS/simpleECS.hpp"
 
-#include "SimpleECS/componentManager.hpp"
 #include "compData.hpp"
 
 bool shouldSync(u8* reference, u8* copy) {
@@ -14,13 +13,16 @@ bool shouldSync(u8* reference, u8* copy) {
 	return reference == nullptr;
 }
 
-#define COPY_DEF(c) bool Entity::copy ## c() { if (!ref ## c()) {return false;} c ## Copy = *c; c = &(c ## Copy); return true; }
-#define SYNC_DEF(c) bool Entity::sync ## c() { if (!shouldSync((u8*)c, (u8*)&c##Copy)) { return false; } if (!ref ## c()) { return false; } *c = c ## Copy; return true; }
-#define REF_DEF(c) bool Entity::ref ## c() {  \
-						if (!app->componentManager.getCompPtr((u8**)(&c), COMP_ENUM(c), prefabID, index)) { return false; } \
-						mask |= COMP_BIT(c); /* TODO: Does mask keep track of referenced or enabled components? */\
-						return true; \
-}
+#define COPY_DEF(c) bool Entity::copy ## c() { \
+if (!ref ## c()) {return false;} \
+c ## Copy = *c; c = &(c ## Copy); return true; }
+
+#define SYNC_DEF(c) bool Entity::sync ## c() { \
+if (!shouldSync((u8*)c, (u8*)&c##Copy)) { return false; } \
+if (!ref ## c()) { return false; } \
+*c = c ## Copy; return true; }
+
+#define REF_DEF(c) bool Entity::ref ## c() { return app->componentManager.getCompPtr((u8**)(&c), COMP_ENUM(c), prefabID, index); }
 
 FOREACH_COMP(COPY_DEF);
 FOREACH_COMP(SYNC_DEF);
@@ -43,7 +45,7 @@ void Entity::clearVars() {
 
 bool Entity::set(u16 cID, u16 arrayIndex) {
 	clearVars();
-	mask = 0;
+	//mask = 0;
 	prefabID = cID;
 	if (prefabID > app->componentManager.getPrefabCount()) {
 		// The class wasn't specified.
@@ -55,7 +57,7 @@ bool Entity::set(u16 cID, u16 arrayIndex) {
 		}
 		// The index was specified. Search for entity using its global index.
 		PrefabData* prefabData;
-		prefabID = app->componentManager.getPrefabCount(); // TODO: replace this with a reliable class count
+		prefabID = app->componentManager.getPrefabCount();
 		while (prefabID > 0) {
 			prefabData = app->componentManager.getPrefab(--prefabID);
 			if (arrayIndex >= prefabData->entityIndex) {
@@ -187,4 +189,8 @@ bool Entity::byIndex(u32 globalIndex) {
 void Entity::setName(std::string name) {
 	u32 globalIndex = getGlobalIndex();
 	app->componentManager.entityNames.setIndex(name, globalIndex);
+}
+
+u32 Entity::getGlobalIndex() {
+	return app->componentManager.getPrefab(prefabID)->entityIndex + index;
 }

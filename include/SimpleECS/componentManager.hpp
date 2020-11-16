@@ -1,9 +1,6 @@
 #pragma once
 
-class ComponentManager;
-
-#include "SimpleECS/util.hpp"
-#include "compData.hpp"
+#include "compData.hpp" // TODO: Send COMP_COUNT to the component manager at runtime and remove this
 
 #define compMask std::bitset<COMP_COUNT>
 
@@ -14,13 +11,12 @@ class ComponentManager;
 
 #define CONTINUE_IF_DISABLED(c) if ((c)->flags & COMP_DISABLED) { continue; }
 
-// TODO: COMP_COUNT should be sent to the component manager at runtime to remove ecsConstants.hpp dependency
 
 
 enum {
 	// The first two bits in the class flags are for the type of memory management.
 
-	// TODO: Implement these...
+	// TODO: Implement these memory management flags
 	PREFAB_MEM_LIMIT,		// if space runs out, new entities will simply be ignored
 	PREFAB_MEM_OVERFLOW,	// if space runs out, new entities should be added to misc memory
 	PREFAB_MEM_OVERWRITE,	// if space runs out, the entity after the most recently added entity will be overwritten.
@@ -44,8 +40,7 @@ struct PrefabData {
 	compMask mask;
 };
 
-// TODO: This should be a user defined variable
-#define MAX_PREFABS 10
+#define MAX_PREFABS 10 // TODO: This should be a user defined variable
 
 class ComponentManager {
 private:

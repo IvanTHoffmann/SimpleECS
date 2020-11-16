@@ -38,7 +38,7 @@ void initLoaderSystem(CB_PARAMS) {
 
 	ent.refSound();
 	ent.Sound->flags |= SOUND_LOOP;
-	ent.Sound->soundIndex = assets->getSoundIndex("AnotherOne");
+	ent.Sound->soundIndex = assets->getSoundIndex("music/AnotherOne");
 	ent.Sound->volume = .8;
 	ent.Sound->sampleIndex = 0;
 	ent.Sound->subIndex = 0;
@@ -59,7 +59,7 @@ void initLoaderSystem(CB_PARAMS) {
 
 	ent.refSound();
 	ent.Sound->flags |= SOUND_LOOP;
-	ent.Sound->soundIndex = assets->getSoundIndex("SickBeat");
+	ent.Sound->soundIndex = assets->getSoundIndex("music/SickBeat");
 	ent.Sound->volume = .8;
 	ent.Sound->sampleIndex = 0;
 	ent.Sound->subIndex = 0;
@@ -81,7 +81,7 @@ void initLoaderSystem(CB_PARAMS) {
 
 	ent.refSound();
 	ent.Sound->flags |= SOUND_LOOP;
-	ent.Sound->soundIndex = assets->getSoundIndex("PlopXD");
+	ent.Sound->soundIndex = assets->getSoundIndex("music/PlopXD");
 	ent.Sound->volume = .8;
 	ent.Sound->sampleIndex = 0;
 	ent.Sound->subIndex = 0;

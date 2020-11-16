@@ -1,4 +1,4 @@
-#include "SimpleECS/application.hpp"
+#include "SimpleECS/simpleECS.hpp"
 
 
 Application::Application(void* d) {
@@ -7,7 +7,7 @@ Application::Application(void* d) {
 }
 
 Application::~Application() {
-	
+	memoryManager.freeAll();
 }
 
 void* Application::getData() {

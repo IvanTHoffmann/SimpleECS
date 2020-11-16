@@ -7,24 +7,17 @@ void updateUISystem(CB_PARAMS) {
 
 	Entity ent(app);
 
-	
+	u16 fps;
 	
 	ent.set(app->componentManager.getPrefabID("text"));
 	while (ent.next()) {
 		ent.copyText();
 
 		if (ent.getIndex() == 0) { // This assumes that the zeroth text entity is the fps counter
-			float dtSum = evnt->dt;
-			//*
-			for (u8 i = 0; i < 9; i++) {
-				appData->dtHistory[i] = appData->dtHistory[i + 1];
-				dtSum += appData->dtHistory[i];
-			}
-			appData->dtHistory[9] = evnt->dt;
-			dtSum /= 10.0;
-			//*/
+			appData->fpsSum -= appData->fpsSum >> 2;
+			appData->fpsSum += (u16)(10 / evnt->dt) + 1;
 
-			u16 fps = (u16)(10 / dtSum) + 1;
+			u16 fps = appData->fpsSum >> 2;
 			u8 i = 0;
 			if (fps >= 10000) {
 				ent.Text->str[i++] = (fps / 10000) % 10 + '0';

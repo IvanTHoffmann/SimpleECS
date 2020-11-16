@@ -3,6 +3,8 @@
 #include "SimpleECS/assetManager.hpp"
 #include "SimpleECS/componentManager.hpp"
 #include "SimpleECS/eventManager.hpp"
+#include "SimpleECS/memoryManager.hpp"
+
 
 class Application {
 private:
@@ -13,6 +15,7 @@ public:
 	AssetManager assetManager;
 	ComponentManager componentManager;
 	EventManager eventManager;
+	MemoryManager memoryManager;
 	
 	Application(void* appData);
 	~Application();
@@ -40,5 +43,6 @@ EventManager  - - - - - stores events and calls them at their target time
 AssetManager  - - - - - Loads and stores asset data to be retrieved by systems. 
 						This could be stored in a singleton component or in AppData, but it's simpler to use it as a class.
 
+MemoryManager - - - - - Allocates and distributes pointers to memory. 
 
 */

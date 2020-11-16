@@ -1,4 +1,4 @@
-#include "SimpleECS/componentManager.hpp"
+#include "SimpleECS/simpleECS.hpp"
 
 
 ComponentManager::ComponentManager() {
@@ -71,20 +71,18 @@ void ComponentManager::recalculateMemory() {
 	}
 }
 
+// TODO: finish removePrefab functions
 void ComponentManager::removePrefab(u16 prefabID) {
-	// TODO: finish...
-	// TODO: check for invalid argument
 	prefabs[prefabID].flags = 0;
-	// TODO: remove prefab name entry from prefabNames
+	// remove prefab name entry from prefabNames
 }
 
 void ComponentManager::removePrefab(std::string name) {
-	// TODO: finish...
-	// TODO: check for invalid argument
 	u16 prefabID = getPrefabID(name);
 	prefabs[prefabID].flags = 0;
 
 }
+//
 
 void ComponentManager::clearPrefabs() {
 	for (u16 i = 0; i < maxPrefabs; i++) {
@@ -93,32 +91,34 @@ void ComponentManager::clearPrefabs() {
 	prefabNames.clear();
 }
 
+// TODO: check for invalid argument and return bool
 PrefabData* ComponentManager::getPrefab(u16 id) {
-	// TODO: check for invalid argument and return bool
 	return prefabs + id;
 }
 
 PrefabData* ComponentManager::getPrefab(std::string name) {
-	// TODO: check for invalid argument and return bool
 	return prefabs + prefabNames.getIndex(name);
 }
+//
 
 u16 ComponentManager::getPrefabID(std::string name) {
 	return prefabNames.getIndex(name);
 }
 
+// TODO: Make sure these functions can never crash
 bool ComponentManager::getCompPtr(u8** p, u16 compID, u16 prefabID, u32 entIndex) {
 	*p = nullptr;
 	PrefabData prefab = prefabs[prefabID];
 	if (!prefab.mask[compID]) { return false; }
 	if (entIndex >= prefab.size) { return false; }
 	*p = data + arrays[compID] + ((u32)prefabs[prefabID].indices[compID] + entIndex) * compSize[compID];
-	return true; // TODO: Make sure this can never cause an error
+	return true; 
 }
 
 bool ComponentManager::getCompPtr(u8** p, u16 compID, u32 compIndex) {
 	*p = nullptr;
 	if (arrays[compID] + compSize[compID] * compIndex >= (compID < COMP_COUNT - 1 ? arrays[compID + 1] : dataSize)) { return false; }
 	*p = data + arrays[compID] + compIndex * compSize[compID];
-	return true; // TODO: Make sure this can never cause an error
+	return true;
 }
+//

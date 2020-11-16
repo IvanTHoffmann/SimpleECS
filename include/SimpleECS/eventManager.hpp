@@ -1,10 +1,10 @@
 #pragma once
 
-#include "util.hpp"
+#include "SimpleECS/decl.hpp"
+#include "SimpleECS/util.hpp"
+
 
 struct Event;
-class Application;
-
 #define CB_PARAMS Application* app, Event* evnt
 #define CB_ARGS app, evnt
 typedef void (*cbFunc)(CB_PARAMS);

@@ -5,5 +5,3 @@ SimpleECS.vcxproj.filters
 SimpleECS.vcxproj.user
 /_build/*
 /_int/*
-
-!assets/*

@@ -4,24 +4,26 @@
 #include "events.hpp"
 #include "appData.hpp"
 
-/* TODO
+/* TODO main
 
-Write a function to convert inches to pixels
-
-Add features to the audio system such as...
- -sound deactivation :|
- -playback speed (+/-)
- -3D sound
- -Sound Generation
-
-
-Check data types regarding entity indices. Some functions may accept u16 where they should accept u32
-Hardcode some limits for how many entities/components are allowed
 Clean up engine code. Check for obsolete variables and places to optimize.
-Allocate temporary memory for event data. Possibly just an array of chars in AppDataAttr where the oldest data is overwritten.
 
-organize util.hpp?
+GUI
+-Write a function to convert inches to pixels
 
+Audio
+-Add sound generation to the audio system
+-Support changing audio devices at runtime
+
+Memory
+-Add a memoryManager class to application it can hold all of the allocated memory in one block
+-Allocate temporary memory for event data. Possibly just an array of chars in AppData where the oldest data is overwritten.
+
+Crash Prevention
+-Check data types regarding entity indices. Some functions may accept u16 where they should accept u32
+-Hardcode some limits for how many entities/components are allowed
+-Secure ComponentManager methods
+-Secure Entity methods
 
 */
 

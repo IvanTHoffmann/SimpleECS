@@ -1,8 +1,6 @@
 #include "systems/audio.hpp"
 #include "appData.hpp"
 
-// TODO: Support changing audio devices at runtime
-
 // PortAudio functions
 
 static int paSoundCallback(

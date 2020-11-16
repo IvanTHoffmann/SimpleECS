@@ -1,0 +1,20 @@
+
+
+attributes need to be named and defined to be used in code and to allocate memory
+classes need to be named and have their masks defined
+functions must have access to attribute variables by name
+
+attr Transform { 
+	vec3 pos,
+	vec3 scale,
+	quat rot,
+}
+
+class Player {
+	Player,
+	Input,
+	Transform,
+	Collision,
+	DynamicBody,
+}
+

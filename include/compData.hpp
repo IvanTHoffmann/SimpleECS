@@ -2,8 +2,6 @@
 
 #include "SimpleECS/util.hpp"
 
-// TODO: Consider removing component flags in release builds. (But isn't the deleted flag used when data isn't packed?)
-
 #define COMP_ENUM(a) a ## Enum
 #define COMP_BIT(a) a ## Bit
 #define COMP_TYPE(a) a ## Comp
