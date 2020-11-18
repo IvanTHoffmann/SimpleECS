@@ -9,7 +9,7 @@ void updateUISystem(CB_PARAMS) {
 
 	u16 fps;
 	
-	ent.set(app->componentManager.getPrefabID("text"));
+	ent.setPrefab("text");
 	while (ent.next()) {
 		ent.copyText();
 

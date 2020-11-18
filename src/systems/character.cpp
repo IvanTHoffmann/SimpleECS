@@ -4,9 +4,9 @@
 void updateCharacterSystem(CB_PARAMS) {
 
 	Entity cam(app);
-	cam.set(app->componentManager.getPrefabID("camera"));
 	Entity player(app);
-	player.set(app->componentManager.getPrefabID("player"));
+	cam.setPrefab("camera");
+	player.setPrefab("player");
 
 	vec2 inputDir;
 

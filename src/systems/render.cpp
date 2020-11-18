@@ -53,7 +53,7 @@ void updateRenderSystem(CB_PARAMS) {
 	FrameBufferInfo* fbo;
 	ModelInfo* model;
 
-	cam.set(app->componentManager.getPrefabID("camera"));
+	cam.setPrefab("camera");
 	
 	shader = app->assetManager.getShader("simple");
 	//shader = app->assetManager.shaders + 0;
@@ -89,7 +89,7 @@ void updateRenderSystem(CB_PARAMS) {
 		// DRAW MESHES
 		glEnable(GL_DEPTH_TEST);
 
-		ent.set();
+		ent.setPrefab(-1);
 		while (ent.next(MeshBit | TransformBit, GuiBit)) {
 			ent.copyMesh();
 			glBindVertexArray(app->assetManager.models[ent.Mesh->meshId].vao);
@@ -147,7 +147,7 @@ void updateRenderSystem(CB_PARAMS) {
 	framePos = vec2(0, 0);
 	frameSize = vec2(1, 1);
 
-	ent.set(app->componentManager.getPrefabID("gui"));
+	ent.setPrefab("gui");
 	while (ent.next()) {
 		ent.copyMesh();
 		glBindVertexArray(app->assetManager.models[ent.Mesh->meshId].vao);
@@ -194,7 +194,7 @@ void updateRenderSystem(CB_PARAMS) {
 
 	// DRAW TEXT
 	
-	ent.set(app->componentManager.getPrefabID("text"));
+	ent.setPrefab("text");
 	model = app->assetManager.getModel("rect");
 	glBindVertexArray(model->vao); // rectangle mesh
 

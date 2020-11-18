@@ -69,9 +69,9 @@ public:
 	void removePrefab(std::string name);
 	void clearPrefabs();
 
-	PrefabData* getPrefab(u16 id);
-	PrefabData* getPrefab(std::string name);
-	u16 getPrefabID(std::string name);
+	bool getPrefab(PrefabData**, u16 id);
+	bool getPrefab(PrefabData**, std::string name);
+	bool getPrefabID(u16*, std::string name);
 
 	bool getCompPtr(u8** p, u16 compID, u16 prefabID, u32 entIndex);
 	bool getCompPtr(u8** p, u16 compID, u32 compIndex = 0);

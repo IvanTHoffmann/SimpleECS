@@ -1,11 +1,5 @@
 #pragma once
 
-class Application;
-class AssetManager;
-class ComponentManager;
-class EventManager;
-class MemoryManager;
-
 #include "SimpleECS/dtypes.hpp"
 #include "SimpleECS/entity.hpp"
 #include "SimpleECS/util.hpp"

@@ -9,7 +9,7 @@ void updateCameraSystem(CB_PARAMS) {
 	quat rot;
 	mat4 m;
 
-	camera.set(app->componentManager.getPrefabID("camera"));
+	camera.setPrefab("camera");
 	while (camera.next()) {
 		camera.refInput();
 		camera.copyChild();
@@ -27,7 +27,7 @@ void updateCameraSystem(CB_PARAMS) {
 		camera.syncChild();
 
 		if (camera.Child->parent != (u16)-1) {
-			parent.set(-1, camera.Child->parent);
+			parent.setGlobalIndex(camera.Child->parent);
 			parent.copyTransform();
 		}
 		else {

@@ -91,12 +91,14 @@ void ComponentManager::recalculateMemory() {
 
 // TODO: finish removePrefab functions
 void ComponentManager::removePrefab(u16 prefabID) {
+	if (prefabID >= prefabCount) { return; }
 	prefabs[prefabID].flags = 0;
 	// remove prefab name entry from prefabNames
 }
 
 void ComponentManager::removePrefab(std::string name) {
-	u16 prefabID = getPrefabID(name);
+	u16 prefabID;
+	if (!getPrefabID(&prefabID, name)) { return; }
 	prefabs[prefabID].flags = 0;
 
 }
@@ -109,18 +111,18 @@ void ComponentManager::clearPrefabs() {
 	prefabNames.clear();
 }
 
-// TODO: check for invalid argument and return bool
-PrefabData* ComponentManager::getPrefab(u16 id) {
-	return prefabs + id;
+bool ComponentManager::getPrefab(PrefabData** out, u16 id) {
+	if (id >= prefabCount) { return false; }
+	*out = prefabs + id;
+	return true;
 }
 
-PrefabData* ComponentManager::getPrefab(std::string name) {
-	return prefabs + prefabNames.getIndex(name);
+bool ComponentManager::getPrefab(PrefabData** out, std::string name) {
+	return getPrefab(out, prefabNames.getIndex(name));
 }
-//
 
-u16 ComponentManager::getPrefabID(std::string name) {
-	return prefabNames.getIndex(name);
+bool ComponentManager::getPrefabID(u16* out, std::string name) {
+	return (*out = prefabNames.getIndex(name)) < prefabCount;
 }
 
 // TODO: Make sure these functions can never crash

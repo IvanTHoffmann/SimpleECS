@@ -39,7 +39,7 @@ void updatePhysicsSystem(CB_PARAMS) {
 	float dt = evnt->dt / appData->physicsInfo.steps;
 
 	for (u8 i = 0; i < appData->physicsInfo.steps; i++) {
-		body.set(app->componentManager.getPrefabID("rigidbody"));
+		body.setPrefab("rigidbody");
 		while (body.next()) {
 			// move body
 			body.copyTransform();
@@ -55,7 +55,7 @@ void updatePhysicsSystem(CB_PARAMS) {
 			body.syncRigidbody();
 		}
 
-		constraint.set(app->componentManager.getPrefabID("constraint"));
+		constraint.setPrefab("constraint");
 		while (constraint.next()) {
 			// update constraints
 
@@ -66,14 +66,14 @@ void updatePhysicsSystem(CB_PARAMS) {
 			}
 			else {
 				bodyA = &body;
-				body.set(-1, constraint.Constraint->bodyA);
+				body.setGlobalIndex(constraint.Constraint->bodyA);
 			}
 			if (constraint.Constraint->bodyB == INVALID_INDEX) {
 				bodyB = nullptr;
 			}
 			else {
 				bodyB = &body2;
-				body2.set(-1, constraint.Constraint->bodyB);
+				body2.setGlobalIndex(constraint.Constraint->bodyB);
 			}
 
 			body.copyTransform();
@@ -91,7 +91,7 @@ void updatePhysicsSystem(CB_PARAMS) {
 			body2.syncTransform();
 		}
 
-		body.set(app->componentManager.getPrefabID("rigidbody"));
+		body.setPrefab("rigidbody");
 		while (body.next()) {
 			// update body velocities
 

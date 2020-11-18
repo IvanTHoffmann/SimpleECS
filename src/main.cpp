@@ -16,7 +16,6 @@ Audio
 -Support changing audio devices at runtime
 
 Memory
--Add a memoryManager class to application it can hold all of the allocated memory in one block
 -Allocate temporary memory for event data. Possibly just an array of chars in AppData where the oldest data is overwritten.
 
 Crash Prevention

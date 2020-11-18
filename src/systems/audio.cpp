@@ -20,7 +20,7 @@ static int paSoundCallback(
 	i16* p;
 
 	bool firstSound = true;
-	ent.set(app->componentManager.getPrefabID("sound"));
+	ent.setPrefab("sound");
 	while (ent.next()) {
 		ent.copySound();
 		CONTINUE_IF_DISABLED(ent.Sound);
@@ -118,7 +118,7 @@ void updateAudioSystem(CB_PARAMS) {
 	float leftVolume, rightVolume, forwardVolume;
 	float invFocus;
 
-	listener.set(app->componentManager.getPrefabID("camera"));
+	listener.setPrefab("camera");
 	while (listener.next()) {
 		listener.refListener();
 		listener.refTransform();
@@ -127,7 +127,7 @@ void updateAudioSystem(CB_PARAMS) {
 		right = vec3(1, 0, 0) * listener.Transform->rot;
 		forward = vec3(0, 0, -1) * listener.Transform->rot;
 
-		sound.set(app->componentManager.getPrefabID("sound"));
+		sound.setPrefab("sound");
 		while (sound.next()) {
 			sound.refSound();
 			sound.refTransform();

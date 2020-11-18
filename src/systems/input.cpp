@@ -190,7 +190,7 @@ void updateInputSystem(CB_PARAMS) {
 	}
 
 	Entity ent(app);
-
+	ent.setPrefab(-1);
 	while (ent.next(InputBit)) {
 		ent.copyInput();
 		if (ent.Input->controllerId == 0) {

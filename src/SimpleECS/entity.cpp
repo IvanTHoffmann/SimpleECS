@@ -31,98 +31,135 @@ FOREACH_COMP(REF_DEF);
 
 Entity::Entity(Application* appPtr) {
 	app = appPtr;
-	set();
+	clearVars();
+	index = -1;
+	prefabID = -1;
 }
 
-#define POINT_TO_COPY(c) c = &c##Copy; 
-#define CLEAR_FLAGS(c) c##Copy.flags = 0; 
+#define POINT_TO_COPY(c) (c = &c##Copy);
+#define CLEAR_FLAGS(c) (c##Copy.flags = 0);
 
 
 void Entity::clearVars() {
-	FOREACH_COMP(POINT_TO_COPY)
-	FOREACH_COMP(CLEAR_FLAGS)
+	FOREACH_COMP(POINT_TO_COPY);
+	FOREACH_COMP(CLEAR_FLAGS);
 }
 
-bool Entity::set(u16 cID, u16 arrayIndex) {
+bool Entity::setPrefab(std::string prefabName) {
+	u16 pID;
+	if (!app->componentManager.getPrefabID(&pID, prefabName)) {
+		std::cout << "ERROR: Entity.setPrefab: Could not set prefab using name \"" << prefabName << "\"\n";
+		return false;
+	}
+	setPrefab(pID);
+}
+
+bool Entity::setPrefab(u16 pID) {
+	PrefabData* prefab;
+	if (!app->componentManager.getPrefab(&prefab, pID)) {
+		return false;
+	}
 	clearVars();
-	//mask = 0;
-	prefabID = cID;
-	if (prefabID > app->componentManager.getPrefabCount()) {
-		// The class wasn't specified.
-		if (arrayIndex == (u8)(-1)) {
-			// The index wasn't specified either.
-			prefabID = -1;
-			index = -1;
-			return false;
-		}
-		// The index was specified. Search for entity using its global index.
-		PrefabData* prefabData;
-		prefabID = app->componentManager.getPrefabCount();
-		while (prefabID > 0) {
-			prefabData = app->componentManager.getPrefab(--prefabID);
-			if (arrayIndex >= prefabData->entityIndex) {
-				// If the CLASS_COUNT-1 array is selected, the index may be outside the bounds, so we check that ( index < maxSize; )
-				index = arrayIndex - prefabData->entityIndex;
-				if (index >= prefabData->capacity) { break; }
-				return true;
-			}
-		}
-		// The global index was out of bounds.
-		prefabID = -1;
-		index = -1;
-		return false;
-	}
-	index = arrayIndex;
-	if (index > app->componentManager.getPrefab(prefabID)->capacity) {
-		// The class was specified, but the local index was out of bounds.
-		index = -1;
-		return false;
-	}
-	// The class and local index were both valid.
-	return true;
+	prefabID = pID;
+	index = -1;
 }
 
-bool Entity::getNew(u16 cID) {
+bool Entity::setIndex(u16 localIndex) {
+	PrefabData* prefab;
+	if (!app->componentManager.getPrefab(&prefab, prefabID)) {
+		std::cout << "ERROR: Entity.setIndex: Could not find prefab with ID \"" << prefabID << "\"\n";
+		return false;
+	}
+
+	if (localIndex >= prefab->capacity) {
+		std::cout << "ERROR: Entity.setIndex: index \"" << localIndex << "\" exceeds the prefab's capacity (" << prefab->capacity << ")\n";
+		return false;
+	}
+
+	clearVars();
+	index = localIndex;
+}
+
+bool Entity::setGlobalIndex(u32 globalIndex) {
+	PrefabData* prefab;
+	prefabID = -1;
+	while (app->componentManager.getPrefab(&prefab, ++prefabID)) {
+		if (globalIndex < prefab->capacity) {
+			index = globalIndex;
+			return true;
+		}
+		globalIndex -= prefab->capacity;
+	}
+	prefabID = -1;
+	index = -1;
+	return false;
+}
+
+bool Entity::create(std::string prefabName) {
+	u16 prefabID;
+	if (!app->componentManager.getPrefabID(&prefabID, prefabName)) {
+		std::cout << "ERROR: Entity.create: Could not locate prefab by name \"" << prefabName << "\"\n";
+		return false;
+	}
+	return create(prefabID);
+}
+
+bool Entity::create(u16 pID) {
 	clearVars();
 	// this accounts for overflow and pack, but not overwrite.
-	prefabID = cID;
-	if (prefabID > app->componentManager.getPrefabCount()) { return false; }
 
-	index = app->componentManager.getPrefab(prefabID)->size - 1;// *(app->componentManager.getPrefab(prefabID)->flags & PREFAB_MEM_PACK != 0) - 1;
-	while (next() && !isDeleted());
-
-	if (index < app->componentManager.getPrefab(cID)->capacity) {
-		// found space in class array
-		app->componentManager.getPrefab(cID)->size++;
-		return true;
+	PrefabData* prefab;
+	if (!app->componentManager.getPrefab(&prefab, pID)) {
+		std::cout << "ERROR: Entity.create: Could not locate prefab by ID \"" << pID << "\"\n";
+		return false;
 	}
 
-	if (app->componentManager.getPrefab(cID)->flags & PREFAB_MEM_OVERFLOW) {
+	prefabID = pID;
+	index = prefab->size - 1;// *(app->componentManager.getPrefab(prefabID)->flags & PREFAB_MEM_PACK != 0) - 1;
+	while (next() && !isDeleted());
+
+	if (index >= prefab->capacity) {
+		std::cout << "ERROR: entity.create: Index exceeded capacity";
+		return false;
+		
+	}
+
+	// found space in class array
+	prefab->size++;
+	return true;
+
+	/*
+	if (prefab->flags & PREFAB_MEM_OVERFLOW) {
 		// misc class should not be set to overflow. 
 		// If this function gets stuck in a loop, thats why. 
 		// Add "&& cID" to this conditional if you just cant help yourself.
-		return getNew(0);
+		return create(0);
 	}
-	return false;
+	*/
 }
 
 // Advances to the next entity in its class. Returns false when it reaches the end of the class's array.
 bool Entity::next() {
-	return ++index < app->componentManager.getPrefab(prefabID)->size; // doesnt support classes with overflow enabled or pack disabled
+	PrefabData* prefab; // TODO: Consider storing a pointer to prefab in entity class or ensuring that prefabID has been confirmed as valid
+	if (!app->componentManager.getPrefab(&prefab, prefabID)) {
+		return false;
+	}
+	return ++index < prefab->size; // doesnt support classes with overflow enabled or pack disabled
 }
 
 // Advances to the next entity that satisfies the masks. Returns false when there are no more to check
 bool Entity::next(compMask reqMask, compMask exclMask) {
-	if (prefabID > app->componentManager.getPrefabCount()) {
-		prefabID = -1;
-	}
-	else if (next()) {
+	PrefabData* prefab;
+	if (app->componentManager.getPrefab(&prefab, prefabID) && next()) {
+		// We assume the prefab is matching
 		return true;
 	}
-	// finished searching class
-	while (++prefabID < app->componentManager.getPrefabCount()) {
+	
+	// finished searching prefab
+
+	while (app->componentManager.getPrefab(&prefab, ++prefabID)) {
 		index = -1;
-		if ((((app->componentManager.getPrefab(prefabID)->mask & reqMask) == reqMask) && ((app->componentManager.getPrefab(prefabID)->mask & exclMask) == 0)) && next())
+		if ((((prefab->mask & reqMask) == reqMask) && ((prefab->mask & exclMask) == 0)) && next())
 		{
 			// masks match class and next returned true;
 			return true;
@@ -132,7 +169,7 @@ bool Entity::next(compMask reqMask, compMask exclMask) {
 }
 
 bool Entity::isDeleted() {
-	u8 *compFlags = nullptr;
+	u8* compFlags = nullptr;
 	for (u16 compID = 0; compID < COMP_COUNT; compID++) {
 		if (app->componentManager.getCompPtr(&compFlags, compID, prefabID, index)) {
 			return *compFlags & COMP_DELETED;
@@ -142,21 +179,24 @@ bool Entity::isDeleted() {
 }
 
 bool Entity::destroy() {
-	if (index > app->componentManager.getPrefab(prefabID)->size) { return false; }
+	PrefabData* prefab;
 
-	if (app->componentManager.getPrefab(prefabID)->flags & PREFAB_MEM_PACK) {
-		if (index < app->componentManager.getPrefab(prefabID)->size - 1) {
+	if (!app->componentManager.getPrefab(&prefab, prefabID)) { return false; }
+	if (index >= prefab->size) { return false; }
+
+	if (prefab->flags & PREFAB_MEM_PACK) {
+		if (index < prefab->size - 1) {
 			// overwrite with attributes from entity[size-1]
 			for (u8 compID = 0; compID < COMP_COUNT; compID++) {
-				if (app->componentManager.getPrefab(prefabID)->mask.test(compID)) {
-					u8 *dst, *src;
+				if (prefab->mask.test(compID)) {
+					u8* dst, * src;
 					app->componentManager.getCompPtr(&dst, compID, prefabID, index);
-					app->componentManager.getCompPtr(&src, compID, prefabID, app->componentManager.getPrefab(prefabID)->size - 1);
+					app->componentManager.getCompPtr(&src, compID, prefabID, prefab->size - 1);
 					memcpy(dst, src, compSize[compID]);
 				}
 			}
 		}
-		app->componentManager.getPrefab(prefabID)->size--;
+		prefab->size--;
 	}
 	else {
 		// set components to deleted
@@ -171,26 +211,24 @@ bool Entity::destroy() {
 
 
 bool Entity::byName(std::string name) {
-	return byIndex(app->componentManager.entityNames.getIndex(name));
-}
-
-bool Entity::byIndex(u32 globalIndex) {
-	for (prefabID = 0; prefabID < app->componentManager.maxPrefabs; prefabID++) {
-		if (globalIndex < app->componentManager.getPrefab(prefabID)->capacity) {
-			index = globalIndex;
-			return true;
-		}
-		globalIndex -= app->componentManager.getPrefab(prefabID)->capacity;
-	}
-	set(); // reset entity variables to default
-	return false;
+	return setGlobalIndex(app->componentManager.entityNames.getIndex(name));
 }
 
 void Entity::setName(std::string name) {
-	u32 globalIndex = getGlobalIndex();
+	u32 globalIndex;
+	if (!getGlobalIndex(&globalIndex)) {
+		std::cout << "ERROR: Entity.setName: Could not set entity name to \"" << name << "\"\n";
+		return;
+	}
 	app->componentManager.entityNames.setIndex(name, globalIndex);
 }
 
-u32 Entity::getGlobalIndex() {
-	return app->componentManager.getPrefab(prefabID)->entityIndex + index;
+bool Entity::getGlobalIndex(u32* id) {
+	PrefabData* prefab;
+	if (!app->componentManager.getPrefab(&prefab, prefabID)) { 
+		std::cout << "ERROR: Entity.getGlobalIndex: Could not find prefab with ID \"" << prefabID << "\"\n";
+		return false; 
+	}
+	*id = prefab->entityIndex + index;
+	return true;
 }

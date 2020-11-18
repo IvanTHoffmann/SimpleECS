@@ -11,7 +11,7 @@ void initLoaderSystem(CB_PARAMS) {
 	assets->loadFbo("fbo-default", 1920, 1000);
 
 	//* music
-	ent.getNew(app->componentManager.getPrefabID("sound"));
+	ent.create("sound");
 	ent.refTransform();
 	ent.Transform->pos = vec3(0, 4, -15);
 	ent.Transform->scale = vec3(1, 1, 1);
@@ -32,7 +32,7 @@ void initLoaderSystem(CB_PARAMS) {
 
 
 	//* music
-	ent.getNew(app->componentManager.getPrefabID("sound"));
+	ent.create("sound");
 	ent.refTransform();
 	ent.Transform->pos = vec3(20, 4, 10);
 	ent.Transform->scale = vec3(.5);
@@ -54,7 +54,7 @@ void initLoaderSystem(CB_PARAMS) {
 
 
 	//* music
-	ent.getNew(app->componentManager.getPrefabID("sound"));
+	ent.create("sound");
 	ent.refTransform();
 	ent.Transform->pos = vec3(-20, 4, 10);
 	ent.Transform->scale = vec3(.5);
@@ -75,7 +75,7 @@ void initLoaderSystem(CB_PARAMS) {
 	//*/
 
 	//* screen
-	ent.getNew(app->componentManager.getPrefabID("model"));
+	ent.create("model");
 	
 	ent.refTransform();
 	ent.Transform->pos = vec3(-5, 0, -15);
@@ -90,7 +90,7 @@ void initLoaderSystem(CB_PARAMS) {
 	u32 lastBodyIndex = INVALID_INDEX;
 	u32 curBodyIndex = INVALID_INDEX;
 	for (int i = 0; i < 12; i++) {
-		ent.getNew(app->componentManager.getPrefabID("rigidbody"));
+		ent.create("rigidbody");
 		ent.refTransform();
 		ent.Transform->pos = vec3(4 * (i + 1), 50 + (4*i), -20);
 		ent.Transform->rot = quat(1, 0, 0, 0);
@@ -100,10 +100,10 @@ void initLoaderSystem(CB_PARAMS) {
 		ent.Mesh->texId = assets->getTextureIndex("crate");
 		ent.Mesh->tiling = vec2(1);
 
-		curBodyIndex = ent.getGlobalIndex();
+		ent.getGlobalIndex(&curBodyIndex);
 
 		//*
-		ent.getNew(app->componentManager.getPrefabID("constraint"));
+		ent.create("constraint");
 		ent.refConstraint();
 		ent.Constraint->bodyA = lastBodyIndex;
 		ent.Constraint->bodyB = curBodyIndex;
@@ -118,7 +118,7 @@ void initLoaderSystem(CB_PARAMS) {
 	//*/
 
 	// big box
-	ent.getNew(app->componentManager.getPrefabID("model"));
+	ent.create("model");
 	
 	ent.refTransform();
 	ent.Transform->pos = vec3(0, 0, 0);
@@ -129,7 +129,7 @@ void initLoaderSystem(CB_PARAMS) {
 	ent.Mesh->tiling = vec2(20);
 
 	// Player
-	ent.getNew(app->componentManager.getPrefabID("player"));
+	ent.create("player");
 	ent.refCharacter();
 	ent.Character->speed = 10;
 	
@@ -139,10 +139,11 @@ void initLoaderSystem(CB_PARAMS) {
 	ent.Input->controllerId = 0;
 	ent.Input->sensitivity = 60.0f / 225;
 
-	u16 playerIndex = ent.getGlobalIndex();
+	u32 playerIndex;
+	ent.getGlobalIndex(&playerIndex);
 
 	// Camera
-	ent.getNew(app->componentManager.getPrefabID("camera"));
+	ent.create("camera");
 	
 	ent.refTransform();
 	ent.Transform->scale = vec3(1);
@@ -162,7 +163,7 @@ void initLoaderSystem(CB_PARAMS) {
 
 
 	// FBO Rect
-	ent.getNew(app->componentManager.getPrefabID("gui"));
+	ent.create("gui");
 	ent.refMesh();
 	ent.Mesh->meshId = assets->getModelIndex("rect");
 	ent.Mesh->texId = assets->getTextureIndex("fbo-default");
@@ -180,7 +181,7 @@ void initLoaderSystem(CB_PARAMS) {
 	ent.Transform->scale = vec3(1);
 
 	//* crosshair
-	ent.getNew(app->componentManager.getPrefabID("gui"));
+	ent.create("gui");
 	ent.refMesh();
 	ent.Mesh->meshId = assets->getModelIndex("rect");
 	ent.Mesh->texId = assets->getTextureIndex("crosshair"); 
@@ -196,7 +197,7 @@ void initLoaderSystem(CB_PARAMS) {
 	//*/
 
 	//* Fps Counter
-	ent.getNew(app->componentManager.getPrefabID("text"));
+	ent.create("text");
 	ent.refText();
 	ent.Text->fontSize = 50;
 	ent.Text->fontIndex = assets->getFontIndex("calibri");
@@ -210,7 +211,7 @@ void initLoaderSystem(CB_PARAMS) {
 	//*/
 
 	//* Controls
-	ent.getNew(app->componentManager.getPrefabID("text"));
+	ent.create("text");
 	ent.refText();
 	ent.Text->fontSize = 30;
 	ent.Text->fontIndex = assets->getFontIndex("calibri");
@@ -224,6 +225,7 @@ void initLoaderSystem(CB_PARAMS) {
 	ent.Transform->rot = vec3(0);
 	//*/
 
-	PrefabData* prefab = app->componentManager.getPrefab("model");
+	PrefabData* prefab;
+	app->componentManager.getPrefab(&prefab, "model");
 	std::cout << "initialized " << prefab->size << "/" << prefab->capacity << " models\n";
 }

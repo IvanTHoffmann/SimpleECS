@@ -32,19 +32,26 @@ private:
 public:
 	Entity(Application* app);
 
-	bool set(u16 cID = -1, u16 arrayIndex = -1);
+	bool create(std::string prefabName);
+	bool create(u16 prefabID);
+	
+	bool byName(std::string name);
+	bool setGlobalIndex(u32 globalIndex);
+
+	bool setPrefab(std::string prefabName);
+	bool setPrefab(u16 prefabID);
+	bool setIndex(u16 localIndex);
+	void setName(std::string name);
+
 	bool next();
 	bool next(compMask reqMask, compMask exclMask = 0);
-	bool getNew(u16 cID);
 	bool isDeleted();
 	bool destroy();
-	bool byName(std::string name);
-	bool byIndex(u32 globalIndex);
-	u32 getIndex() { return index; }
-	u16 getPrefab() { return prefabID; }
-	u32 getGlobalIndex();
 
-	void setName(std::string name);
+	u32 getIndex() { return index; }
+	u16 getPrefabID() { return prefabID; }
+	bool getGlobalIndex(u32* id);
+
 
 	//compMask mask;
 	FOREACH_COMP(COMP_PTR);
