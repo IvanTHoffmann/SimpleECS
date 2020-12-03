@@ -22,10 +22,46 @@ f(Listener) \
 
 // PHYSICS
 
-struct COMP_TYPE(Transform) {
-	u8 flags;
-	vec3 pos, scale;
+enum {
+	// collision shapes
+	CONSTRAINT_SPHERE,
+	CONSTRAINT_CYLINDER,
+	CONSTRAINT_CIRCLE,
+	CONSTRAINT_CONE,
+	CONSTRAINT_RIGHT_TRI_PRISM,
+	CONSTRAINT_BOX,
+	CONSTRAINT_RECT,
+	CONSTRAINT_SEGMENT,
+	CONSTRAINT_PLANE,
+	CONSTRAINT_LINE,
+	CONSTRAINT_RAY,
+
+#define IS_SHAPE(t) ((t) <= CONSTRAINT_RAY)
+
+	// joints
+	CONSTRAINT_DISTANCE,
+	CONSTARINT_SPRING,
+};
+
+
+#define CONSTRAINT_HOLLOW 0x1
+
+struct Offset {
+	vec3 pos;
 	quat rot;
+};
+
+struct COMP_TYPE(Constraint) {
+	u8 flags;
+	u8 type;
+	u8 numConnections;
+	u32 body;
+	u32 connections[4]; // constraints can limit bodies or other constraints
+	Offset offsets[2];
+	float restitution;
+	float staticFriction;
+	float dynamicFriction;
+	float compliance;
 };
 
 struct COMP_TYPE(Rigidbody) {
@@ -36,12 +72,10 @@ struct COMP_TYPE(Rigidbody) {
 	quat spin, lastRot;
 };
 
-struct COMP_TYPE(Constraint) {
+struct COMP_TYPE(Transform) {
 	u8 flags;
-	u32 bodyA, bodyB;
-	float compliance;
-	TransformComp offsetA;
-	TransformComp offsetB;
+	vec3 pos, scale;
+	quat rot;
 };
 
 // CONTROL
@@ -64,7 +98,7 @@ struct COMP_TYPE(Character) {
 
 struct COMP_TYPE(Camera) {
 	u8 flags;
-	u8 fboId;
+	u16 fboId;
 	float aspect, fov;
 };
 
@@ -98,8 +132,8 @@ struct COMP_TYPE(Gui) {
 
 struct COMP_TYPE(Text) { // 
 	u8 flags;
-	u8 fontIndex;
 	u8 lineCount;
+	u16 fontIndex;
 	char str[64]; // TODO: replace with a pointer to memory stored in AppData
 	float fontSize;
 };

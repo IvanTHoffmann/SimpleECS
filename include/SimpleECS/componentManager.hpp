@@ -44,7 +44,7 @@ struct PrefabData {
 class ComponentManager {
 private:
 	Application* app;
-	u8* data; // pointer to the beggining of component data
+	size_t data; // pointer to the beggining of component data
 	u32 dataSize;
 	u32 arrays[COMP_COUNT]; // logs where each component array begins in data
 

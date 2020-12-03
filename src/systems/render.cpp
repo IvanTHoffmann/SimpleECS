@@ -35,10 +35,11 @@ void initRenderSystem(CB_PARAMS) {
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
-	glClearColor(.35, .35, .5, 1);
+	glClearColor(.35f, .35f, .5f, 1.0f);
 
 	glActiveTexture(GL_TEXTURE0);
 }
+
 
 void updateRenderSystem(CB_PARAMS) {
 	AppData* appData = (AppData*)app->getData();
@@ -56,7 +57,6 @@ void updateRenderSystem(CB_PARAMS) {
 	cam.setPrefab("camera");
 	
 	shader = app->assetManager.getShader("simple");
-	//shader = app->assetManager.shaders + 0;
 
 	glDisable(GL_BLEND);
 
@@ -77,7 +77,7 @@ void updateRenderSystem(CB_PARAMS) {
 		glPolygonMode(GL_FRONT, GL_FILL);
 		//glPolygonMode(GL_FRONT_AND_BACK, GL_LINES);
 		glDisable(GL_BLEND);
-		glDisable(GL_CULL_FACE);
+		glEnable(GL_CULL_FACE);
 
 		glUseProgram(shader->id);
 
@@ -89,19 +89,19 @@ void updateRenderSystem(CB_PARAMS) {
 		// DRAW MESHES
 		glEnable(GL_DEPTH_TEST);
 
-		ent.setPrefab(-1);
+		ent.setPrefab(0);
 		while (ent.next(MeshBit | TransformBit, GuiBit)) {
-			ent.copyMesh();
+			ent.refMesh();
 			glBindVertexArray(app->assetManager.models[ent.Mesh->meshId].vao);
 			glBindTexture(GL_TEXTURE_2D, app->assetManager.textures[ent.Mesh->texId].id);
 
 			glUniform2fv(shader->uniforms[U_TILING], 1, value_ptr(ent.Mesh->tiling));
 
-			ent.copyTransform();
-			matrix = mat4(1.0f);
-			matrix = translate(matrix, ent.Transform->pos);
-			matrix *= mat4_cast(ent.Transform->rot);
-			matrix = scale(matrix, ent.Transform->scale);
+			ent.refTransform();
+			matrix = mat4(ent.Transform->scale.x, 0, 0, 0,
+						  0, ent.Transform->scale.y, 0, 0,
+						  0, 0, ent.Transform->scale.z, 0,
+						  ent.Transform->pos.x, ent.Transform->pos.y, ent.Transform->pos.z, 1) * mat4_cast(ent.Transform->rot);
 
 			setMatrix(shader->uniforms[U_MODEL], matrix);
 			glDrawArrays(GL_TRIANGLES, 0, app->assetManager.models[ent.Mesh->meshId].vertexCount);
@@ -127,65 +127,52 @@ void updateRenderSystem(CB_PARAMS) {
 	glEnable(GL_BLEND);
 	//glDisable(GL_DEPTH_TEST);
 
-	vec2 framePos = { 0, 0 };
-	vec2 frameSize = { 1, 1 };
-
 	mat4 shift = mat4(
 		2, 0, 0, 0,
 		0, 2, 0, 0,
 		0, 0, 2, 0,
 		-1, -1, -1, 1);
 
-	char c;
-	float charWidth;
-
 	//* Draw Text
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glBlendEquation(GL_FUNC_ADD);
 
-	framePos = vec2(0, 0);
-	frameSize = vec2(1, 1);
+	vec2 framePos = { 0, 0 };
+	vec2 frameSize = { 1, 1 };
 
+	vec3 s;
+	float percScale, percAnchor, percPos;
+	vec3 invWinSize = 1.0f / vec3(appData->inputInfo.windowW, appData->inputInfo.windowH, 1);
+
+	//
+#define SET_GUI_MATRIX \
+	percScale = (ent.Gui->flags & COMP_GUI_PIXEL_SCALE) == 0; \
+	percAnchor = (ent.Gui->flags & COMP_GUI_PIXEL_ANCHOR) == 0; \
+	percPos = (ent.Gui->flags & COMP_GUI_PIXEL_POS) == 0; \
+	matrix = translate(mat4(1.0f), ent.Transform->pos * (percPos * vec3(1) - (percPos - 1) * invWinSize)); \
+	s = ent.Transform->scale * (percScale * vec3(1) - (percScale - 1) * invWinSize); \
+	matrix = translate(matrix, -ent.Gui->anchor * (percAnchor * s - (percAnchor - 1) * invWinSize)); \
+	matrix = scale(matrix, s);
+	//
+	
 	ent.setPrefab("gui");
 	while (ent.next()) {
-		ent.copyMesh();
+		ent.refMesh();
 		glBindVertexArray(app->assetManager.models[ent.Mesh->meshId].vao);
 		glBindTexture(GL_TEXTURE_2D, app->assetManager.textures[ent.Mesh->texId].id);
 
-		ent.copyGui();
+		ent.refGui();
 		glUniform4fv(shader->uniforms[U_COLOR], 1, value_ptr(ent.Gui->color));
 
-		ent.copyTransform();
-		matrix = mat4(1.0f);
-		if (ent.Gui->flags & COMP_GUI_PIXEL_POS) {
-			matrix = translate(matrix, ent.Transform->pos / vec3(appData->inputInfo.windowW, appData->inputInfo.windowH, 1));
-		}
-		else {
-			matrix = translate(matrix, ent.Transform->pos);
-		}
-
-		if (ent.Gui->flags & COMP_GUI_PIXEL_ANCHOR) {
-			matrix = translate(matrix, -ent.Gui->anchor / vec3(appData->inputInfo.windowW, appData->inputInfo.windowH, 1));
-		}
-
-		if (ent.Gui->flags & COMP_GUI_PIXEL_SCALE) {
-			matrix = scale(matrix, ent.Transform->scale / vec3(appData->inputInfo.windowW, appData->inputInfo.windowH, 1));
-		}
-		else {
-			matrix = scale(matrix, ent.Transform->scale);
-		}
-
-		if (!(ent.Gui->flags & COMP_GUI_PIXEL_ANCHOR)) {
-			matrix = translate(matrix, -ent.Gui->anchor);
-		}
+		ent.refTransform();
+		SET_GUI_MATRIX
 
 		glUniform2fv(shader->uniforms[U_FRAME_POS], 1, value_ptr(framePos));
 		glUniform2fv(shader->uniforms[U_FRAME_SIZE], 1, value_ptr(frameSize));
 		glUniformMatrix4fv(shader->uniforms[U_MODEL], 1, GL_FALSE, value_ptr(shift * matrix));
 		glDrawArrays(GL_TRIANGLES, 0, app->assetManager.models[ent.Mesh->meshId].vertexCount);
 	}
-
 
 	//glEnable(GL_BLEND);
 	//glBlendFuncSeparate(GL_SRC_ALPHA_SATURATE, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
@@ -196,11 +183,13 @@ void updateRenderSystem(CB_PARAMS) {
 	
 	ent.setPrefab("text");
 	model = app->assetManager.getModel("rect");
-	glBindVertexArray(model->vao); // rectangle mesh
+	glBindVertexArray(model->vao);
 
 	TextureInfo* texture;
 
 	u16* p;
+	char c;
+	float charWidth, aspect = appData->inputInfo.windowH / (float)appData->inputInfo.windowW;
 
 	while (ent.next()) {
 		ent.copyText();
@@ -213,30 +202,7 @@ void updateRenderSystem(CB_PARAMS) {
 		glUniform4fv(shader->uniforms[U_COLOR], 1, value_ptr(ent.Gui->color));
 
 		ent.copyTransform();
-		matrix = mat4(1.0f);
-		if (ent.Gui->flags & COMP_GUI_PIXEL_POS) {
-			matrix = translate(matrix, ent.Transform->pos / vec3(appData->inputInfo.windowW, appData->inputInfo.windowH, 1));
-		}
-		else {
-			matrix = translate(matrix, ent.Transform->pos);
-		}
-
-		if (ent.Gui->flags & COMP_GUI_PIXEL_ANCHOR) {
-			matrix = translate(matrix, -ent.Gui->anchor / vec3(appData->inputInfo.windowW, appData->inputInfo.windowH, 1));
-		}
-
-		if (ent.Gui->flags & COMP_GUI_PIXEL_SCALE) {
-			matrix = scale(matrix, ent.Transform->scale / vec3(appData->inputInfo.windowW, appData->inputInfo.windowH, 1));
-		}
-		else {
-			matrix = scale(matrix, ent.Transform->scale);
-		}
-
-		if (!(ent.Gui->flags & COMP_GUI_PIXEL_ANCHOR)) {
-			matrix = translate(matrix, -ent.Gui->anchor);
-		}
-
-		float aspect = appData->inputInfo.windowH / (float)appData->inputInfo.windowW;
+		SET_GUI_MATRIX
 
 		framePos.y = 0;
 		frameSize.y = 1;

@@ -118,10 +118,14 @@ void updateAudioSystem(CB_PARAMS) {
 	float leftVolume, rightVolume, forwardVolume;
 	float invFocus;
 
-	listener.setPrefab("camera");
-	while (listener.next()) {
+	listener.setPrefab(0);
+	while (listener.next(ListenerBit)) {
 		listener.refListener();
 		listener.refTransform();
+
+		if (listener.Listener->volume <= 0) {
+			continue;
+		}
 
 		invFocus = 1 - listener.Listener->focus;
 		right = vec3(1, 0, 0) * listener.Transform->rot;

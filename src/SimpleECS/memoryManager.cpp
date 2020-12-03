@@ -21,22 +21,21 @@ void* MemoryManager::getMemStart() {
 	return memStart;
 }
 
-void MemoryManager::freeTo(u8* freePoint) {
+void MemoryManager::freeTo(size_t freePoint) {
 	if (inMemory(freePoint)) {
-		size_t oldHead = head;
-		head = (freePoint - memStart);
-		std::cout << oldHead << "->" << head << '\n';
+		head = freePoint;
 	}
 }
 
-void* MemoryManager::getBlock(size_t blockSize) {
-	void* blockStart = getVolatileBlock(blockSize);
+u8* MemoryManager::getBlock(size_t blockSize) {
+	u8* blockStart = getVolatileBlock(blockSize);
+	std::cout << "allocate " << head << " - ";
 	head += blockSize;
-	printMemory(head);
+	std::cout << head << '\n';
 	return blockStart;
 }
 
-void* MemoryManager::getVolatileBlock(size_t blockSize) {
+u8* MemoryManager::getVolatileBlock(size_t blockSize) {
 	if (head + blockSize >= memSize) {
 		setMemSize(((head + blockSize) / CHUNK_SIZE + 2) * CHUNK_SIZE);
 	}
@@ -57,13 +56,8 @@ void MemoryManager::setMemSize(size_t newSize) {
 	}
 
 	if (newMemStart == nullptr) {
-		std::cout << "ERROR: Memory allocation failed\n";
+		std::cout << "ERROR: MemoryManager.setMemSize: Memory allocation failed\n";
 		return;
-	}
-
-	std::cout << "--- allocate --- ";
-	if (newMemStart != memStart) {
-		std::cout << "memStart changed on allocation..." << '\n';
 	}
 
 	memStart = (u8*)newMemStart;
@@ -79,17 +73,17 @@ void MemoryManager::freeAll() {
 	head = 0;
 }
 
-bool MemoryManager::inMemory(u8* ptr) {
-	return ptr >= memStart && (ptr - memStart) < memSize;
+bool MemoryManager::inMemory(size_t point) {
+	return (0 <= point) && (point < memSize);
 }
 
 void MemoryManager::printMemory(size_t address) {
-	float occupied = (double)address / memSize;
-	u16 charCount = occupied * 100;
+	float occupied = (float)address / memSize;
+	u16 charCount = (u16)(occupied * 100);
 	while (charCount--) {
 		std::cout << '#';
 	}
-	charCount = (1-occupied) * 100;
+	charCount = (u16)((1-occupied) * 100);
 	while (charCount--) {
 		std::cout << '-';
 	}

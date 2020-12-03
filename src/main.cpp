@@ -8,10 +8,14 @@
 
 Clean up engine code. Check for obsolete variables and places to optimize.
 
+RENDER
+-Fix the camera rotation. The model attached to it rotates in the opposite direction.
+
 GUI
 -Write a function to convert inches to pixels
 
 Audio
+-Fix incorrect behaviour when using multiple audio listeners (possibly just add a limiter and/or some compression)
 -Add sound generation to the audio system
 -Support changing audio devices at runtime
 

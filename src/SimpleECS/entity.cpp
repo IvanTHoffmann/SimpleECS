@@ -51,7 +51,7 @@ bool Entity::setPrefab(std::string prefabName) {
 		std::cout << "ERROR: Entity.setPrefab: Could not set prefab using name \"" << prefabName << "\"\n";
 		return false;
 	}
-	setPrefab(pID);
+	return setPrefab(pID);
 }
 
 bool Entity::setPrefab(u16 pID) {
@@ -62,6 +62,7 @@ bool Entity::setPrefab(u16 pID) {
 	clearVars();
 	prefabID = pID;
 	index = -1;
+	return true;
 }
 
 bool Entity::setIndex(u16 localIndex) {
@@ -78,6 +79,7 @@ bool Entity::setIndex(u16 localIndex) {
 
 	clearVars();
 	index = localIndex;
+	return true;
 }
 
 bool Entity::setGlobalIndex(u32 globalIndex) {
@@ -105,7 +107,6 @@ bool Entity::create(std::string prefabName) {
 }
 
 bool Entity::create(u16 pID) {
-	clearVars();
 	// this accounts for overflow and pack, but not overwrite.
 
 	PrefabData* prefab;
@@ -126,6 +127,8 @@ bool Entity::create(u16 pID) {
 
 	// found space in class array
 	prefab->size++;
+
+	clearVars();
 	return true;
 
 	/*
@@ -207,6 +210,7 @@ bool Entity::destroy() {
 			}
 		}
 	}
+	return true;
 }
 
 

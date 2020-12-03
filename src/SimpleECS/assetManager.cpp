@@ -2,6 +2,8 @@
 
 
 AssetManager::AssetManager() {
+	app = nullptr;
+
 	bool finished = false;
 	u16 i = 0;
 	while (!finished) {
@@ -34,20 +36,7 @@ AssetManager::AssetManager() {
 	}
 }
 
-AssetManager::~AssetManager() {
-	/*
-	for (u16 i = 0; i < MAX_FONTS; i++) {
-		if (fonts[i].flags & ASSET_ACTIVE) {
-			free((u8*)fonts[i].offsets);
-		}
-	}
-	for (u16 i = 0; i < MAX_SOUNDS; i++) {
-		if (sounds[i].flags & ASSET_ACTIVE) {
-			free(sounds[i].data);
-		}
-	}
-	*/
-}
+AssetManager::~AssetManager() {}
 
 
 void AssetManager::setApp(Application* _app) {
@@ -139,14 +128,13 @@ void AssetManager::finishTexture(GLboolean linear) {
 void AssetManager::loadTexture(TextureInfo* texInfo, std::string filename, GLboolean linear) {
 	FILE* f;
 	if (fopen_s(&f, &filename[0], "rb")) {
-		printf("could not open %s\n", filename);
+		std::cout << "could not open " << filename << "\n";
 		return;
 	}
 
 	glGenTextures(1, &texInfo->id);
-	uint32_t dataOffset;
-	uint32_t headerSize;
-	uint16_t bitsPerPixel;
+	u32 dataOffset;
+	u16 bitsPerPixel;
 
 	fseek(f, 10, SEEK_CUR);
 	fread_s(&dataOffset, 4, 1, 4, f);
@@ -157,15 +145,15 @@ void AssetManager::loadTexture(TextureInfo* texInfo, std::string filename, GLboo
 	fread_s(&bitsPerPixel, 2, 1, 2, f);
 	fseek(f, 4, SEEK_CUR);
 
-	uint32_t bytesPerPixel = (bitsPerPixel / 8);
-	uint32_t dataSize = (texInfo->w * texInfo->h) * bytesPerPixel;
+	size_t bytesPerPixel = (bitsPerPixel / 8);
+	size_t dataSize = bytesPerPixel * ((size_t)texInfo->w * texInfo->h);
 	GLubyte* data = (GLubyte*)app->memoryManager.getVolatileBlock(dataSize);
 	//GLubyte* data = (GLubyte*)malloc(dataSize);
 
-	uint32_t rowSize = (bytesPerPixel * texInfo->w + 3) / 4 * 4;
-	for (uint32_t row = 0; row < texInfo->h; row++) {
+	size_t rowSize = (bytesPerPixel * texInfo->w + 3) / 4 * 4;
+	for (size_t row = 0; row < texInfo->h; row++) {
 		fseek(f, dataOffset + rowSize * row, SEEK_SET);
-		fread_s(data + texInfo->w * bytesPerPixel * row, dataSize, bytesPerPixel, texInfo->w, f);
+		fread_s(data + bytesPerPixel * row * texInfo->w, dataSize, bytesPerPixel, texInfo->w, f);
 	}
 
 	fclose(f);
@@ -220,7 +208,7 @@ void AssetManager::compileShader(ShaderInfo* shaderInfo, std::string vert, std::
 
 GLuint AssetManager::loadShader(std::string filename, const GLuint shaderType) {
 	const fpos_t fpos = 0;
-	uint16_t fileSize;
+	size_t fileSize;
 	FILE* f;
 	char* buffer;
 
@@ -242,7 +230,7 @@ GLuint AssetManager::loadShader(std::string filename, const GLuint shaderType) {
 		fclose(f);
 	}
 	else {
-		printf("ERROR: Failed to load %s\n", filename);
+		std::cout << "ERROR: Failed to load shader file \"" << filename << "\"\n";
 		return 0;
 	}
 
@@ -276,7 +264,7 @@ GLuint AssetManager::loadShader(std::string filename, const GLuint shaderType) {
 void AssetManager::loadMODEL(ModelInfo* modelInfo, std::string filename) {
 	FILE* fp;
 	if (fopen_s(&fp, &filename[0], "rb")) {
-		printf("ERROR: Could not load %s\n", filename);
+		std::cout << "ERROR: Could not load " << filename << "\n";
 	}
 
 	// read vertex count
@@ -404,7 +392,7 @@ void printRIFF(SoundInfo* r) {
 void AssetManager::loadWAV(SoundInfo* soundInfo, std::string filename) {
 	FILE* f;
 	if (fopen_s(&f, &filename[0], "rb")) {
-		printf("ERROR: Could not open %s for reading\n", filename);
+		std::cout << "ERROR: Could not open " << filename << " for reading\n";
 		return;
 	}
 

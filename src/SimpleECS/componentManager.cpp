@@ -10,7 +10,7 @@ ComponentManager::ComponentManager() {
 
 ComponentManager::~ComponentManager() {
 	if (dataSize) {
-		app->memoryManager.freeTo((u8*)data);
+		app->memoryManager.freeTo(data);
 	}
 }
 
@@ -82,9 +82,11 @@ void ComponentManager::recalculateMemory() {
 		app->memoryManager.freeTo(data);
 	}
 	std::cout << "Components (" << bytes << ") bytes\n";
-	data = (u8*)app->memoryManager.getBlock(bytes);
-	for (u32 i = 0; i < bytes; i++) {
-		data[i] = 0;
+	data = app->memoryManager.getHead();
+	dataSize = bytes;
+	u8* dataPtr = (u8*)app->memoryManager.getBlock(bytes);
+	for (u32 i = 0; i < dataSize; i++) {
+		dataPtr[i] = 0;
 	}
 	//*/
 }
@@ -131,14 +133,14 @@ bool ComponentManager::getCompPtr(u8** p, u16 compID, u16 prefabID, u32 entIndex
 	PrefabData prefab = prefabs[prefabID];
 	if (!prefab.mask[compID]) { return false; }
 	if (entIndex >= prefab.size) { return false; }
-	*p = data + arrays[compID] + ((u32)prefabs[prefabID].indices[compID] + entIndex) * compSize[compID];
+	*p = app->memoryManager.memStart + data + arrays[compID] + ((u32)prefabs[prefabID].indices[compID] + entIndex) * compSize[compID];
 	return true; 
 }
 
 bool ComponentManager::getCompPtr(u8** p, u16 compID, u32 compIndex) {
 	*p = nullptr;
 	if (arrays[compID] + compSize[compID] * compIndex >= (compID < COMP_COUNT - 1 ? arrays[compID + 1] : dataSize)) { return false; }
-	*p = data + arrays[compID] + compIndex * compSize[compID];
+	*p = app->memoryManager.memStart + data + arrays[compID] + compIndex * compSize[compID];
 	return true;
 }
 //

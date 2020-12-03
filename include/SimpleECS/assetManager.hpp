@@ -37,7 +37,7 @@ typedef struct {
 	u8 flags;
 	GLuint fboId, rbo;
 	GLuint w, h;
-	u8 texIndex;
+	u16 texIndex;
 } FrameBufferInfo;
 
 typedef struct {
@@ -53,7 +53,7 @@ typedef struct {
 
 typedef struct {
 	u8 flags;
-	u8 texIndex;
+	u16 texIndex;
 	u16 charCount;
 	size_t offset_loc; // address of u16 array
 } FontInfo;
@@ -74,7 +74,7 @@ struct SoundInfo { // WAV file must have int16 sample size and 44100 sample rate
 };
 
 // TODO: These should be user defined variables
-#define MAX_FBOS 2
+#define MAX_FBOS 3
 #define MAX_SHADERS 2
 #define MAX_MODELS 10
 #define MAX_TEXTURES 10

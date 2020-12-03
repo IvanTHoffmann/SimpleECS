@@ -135,8 +135,8 @@ void onMouseButton(GLFWwindow *window, int button, int action, int mods) {
 void onScroll(GLFWwindow *window, double x, double y) {
 	InputInfo *inputInfo = (InputInfo*)glfwGetWindowUserPointer(window);
 
-	inputInfo->scrollX += x;
-	inputInfo->scrollY += y;
+	inputInfo->scrollX += (int)x;
+	inputInfo->scrollY += (int)y;
 	printf("scroll: (%f, %f)\n", x, y);
 }
 
@@ -163,13 +163,13 @@ void updateJoysticks() {
 	hats = (unsigned char*)glfwGetJoystickHats(id, &hatCount);
 
 	for (i = 0; i < axisCount; i++) {
-		printf("axis   %2d: %d\n", i, axes[i]);
+		std::cout << "axis   " << i << ": " << axes[i] << "\n";
 	}
 	for (i = 0; i < buttonCount; i++) {
-		printf("button %2d: %d\n", i, buttons[i]);
+		std::cout << "button " << i << ": " << buttons[i] << "\n";
 	}
 	for (i = 0; i < hatCount; i++) {
-		printf("hat    %2d: %d\n", i, hats[i]);
+		std::cout << "hat    " << i << ": " << hats[i] << "\n";
 	}
 }
 
@@ -195,8 +195,8 @@ void updateInputSystem(CB_PARAMS) {
 		ent.copyInput();
 		if (ent.Input->controllerId == 0) {
 			if (appData->inputInfo.windowState & (WIN_MOUSE_LOCKED | WIN_MOUSE_JUMP)) {
-				ent.Input->axis[AXIS_LH] = (appData->inputInfo.d - appData->inputInfo.a);
-				ent.Input->axis[AXIS_LV] = (appData->inputInfo.s - appData->inputInfo.w);
+				ent.Input->axis[AXIS_LH] = (float)(appData->inputInfo.d - appData->inputInfo.a);
+				ent.Input->axis[AXIS_LV] = (float)(appData->inputInfo.s - appData->inputInfo.w);
 				//input.axis[AXIS_RH] *= input.deceleration * evnt->dt;
 				//input.axis[AXIS_RV] *= input.deceleration * evnt->dt;
 				ent.Input->axis[AXIS_RH] = appData->inputInfo.mouseDX * ent.Input->sensitivity;

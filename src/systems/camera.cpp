@@ -7,7 +7,6 @@ void updateCameraSystem(CB_PARAMS) {
 	
 	vec3 input;
 	quat rot;
-	mat4 m;
 
 	camera.setPrefab("camera");
 	while (camera.next()) {
@@ -28,17 +27,13 @@ void updateCameraSystem(CB_PARAMS) {
 
 		if (camera.Child->parent != (u16)-1) {
 			parent.setGlobalIndex(camera.Child->parent);
-			parent.copyTransform();
+			parent.refTransform();
+			// Move the camera's position and orientation to the target offset.
+			camera.copyTransform();
+			camera.Transform->pos = camera.Child->offsetPos + parent.Transform->pos;
+			//trans.rot = mix(trans.rot, rot, 20.0f * evnt->dt);// +parentTrans.rot;
+			camera.Transform->rot = rot;
+			camera.syncTransform();
 		}
-		else {
-			parent.Transform->pos = { 0,0,0 };
-		}
-		
-		// Move the camera's position and orientation to the target offset.
-		camera.copyTransform();
-		camera.Transform->pos = camera.Child->offsetPos + parent.Transform->pos;
-		//trans.rot = mix(trans.rot, rot, 20.0f * evnt->dt);// +parentTrans.rot;
-		camera.Transform->rot = rot;
-		camera.syncTransform();
 	}
 }

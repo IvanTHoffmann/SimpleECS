@@ -17,10 +17,10 @@ void localToGlobalTransform(TransformComp* trans, TransformComp* other) {
 
 
 void getGlobalJointTransforms(COMP_TYPE(Transform)* globalA, COMP_TYPE(Transform)* globalB, Entity* constraint, Entity* bodyA = nullptr, Entity* bodyB = nullptr) {
-	globalA->pos = vec3(constraint->Constraint->offsetA.pos);
-	globalA->rot = quat(constraint->Constraint->offsetA.rot);
-	globalB->pos = vec3(constraint->Constraint->offsetB.pos);
-	globalB->rot = quat(constraint->Constraint->offsetB.rot);
+	globalA->pos = vec3(constraint->Constraint->offsets[0].pos);
+	globalA->rot = quat(constraint->Constraint->offsets[0].rot);
+	globalB->pos = vec3(constraint->Constraint->offsets[1].pos);
+	globalB->rot = quat(constraint->Constraint->offsets[1].rot);
 	if (bodyA != nullptr) {
 		localToGlobalTransform(bodyA->Transform, globalA);
 	}
@@ -32,16 +32,15 @@ void getGlobalJointTransforms(COMP_TYPE(Transform)* globalA, COMP_TYPE(Transform
 
 void updatePhysicsSystem(CB_PARAMS) {
 	AppData* appData = (AppData*)app->getData();
-	Entity body(app), body2(app), constraint(app);
-	Entity *bodyA, *bodyB;
+	Entity body(app), c0(app), c1(app);
+	Entity *a, *b;
 	TransformComp globalA, globalB;
 
 	float dt = evnt->dt / appData->physicsInfo.steps;
 
 	for (u8 i = 0; i < appData->physicsInfo.steps; i++) {
 		body.setPrefab("rigidbody");
-		while (body.next()) {
-			// move body
+		while (body.next()) { // move body
 			body.copyTransform();
 			body.copyRigidbody();
 
@@ -55,46 +54,26 @@ void updatePhysicsSystem(CB_PARAMS) {
 			body.syncRigidbody();
 		}
 
-		constraint.setPrefab("constraint");
-		while (constraint.next()) {
-			// update constraints
+		c0.setPrefab("constraint");
+		while (c0.next()) { // update constraints
+			c0.refConstraint();
 
-			constraint.copyConstraint();
-
-			if (constraint.Constraint->bodyA == INVALID_INDEX) {
-				bodyA = nullptr;
-			}
-			else {
-				bodyA = &body;
-				body.setGlobalIndex(constraint.Constraint->bodyA);
-			}
-			if (constraint.Constraint->bodyB == INVALID_INDEX) {
-				bodyB = nullptr;
-			}
-			else {
-				bodyB = &body2;
-				body2.setGlobalIndex(constraint.Constraint->bodyB);
+			if (IS_SHAPE(c0.Constraint->type)) {
+				
 			}
 
-			body.copyTransform();
-			body2.copyTransform();
+			// get a pair of constraints
 
-			getGlobalJointTransforms(&globalA, &globalB, &constraint, bodyA, bodyB);
+
+			// getGlobalJointTransforms(&globalA, &globalB, &constraint, bodyA, bodyB);
 
 			// update body orientations
 
 			// update body positions
-
-			
-
-			body.syncTransform();
-			body2.syncTransform();
 		}
 
 		body.setPrefab("rigidbody");
-		while (body.next()) {
-			// update body velocities
-
+		while (body.next()) { // update body velocities
 			body.refTransform();
 			body.copyRigidbody();
 			
@@ -104,6 +83,12 @@ void updatePhysicsSystem(CB_PARAMS) {
 			body.Rigidbody->spin = (body.Transform->rot * conjugate(body.Rigidbody->lastRot)) / dt;
 
 			body.syncRigidbody();
+
+		}
+
+		c0.setPrefab("constraint");
+		while (c0.next()) { // solve friction and restitution
+			c0.refConstraint();
 
 		}
 	}

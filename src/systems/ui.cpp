@@ -6,8 +6,6 @@ void updateUISystem(CB_PARAMS) {
 	AppData* appData = (AppData*)app->getData();
 
 	Entity ent(app);
-
-	u16 fps;
 	
 	ent.setPrefab("text");
 	while (ent.next()) {
@@ -29,12 +27,12 @@ void updateUISystem(CB_PARAMS) {
 			ent.Text->str[i++] = (fps / 10) % 10 + '0';
 			ent.Text->str[i++] = '.';
 			ent.Text->str[i++] = fps % 10 + '0';
-			strcpy(ent.Text->str + i, " fps \0");
+			strcpy_s(ent.Text->str + i, 7, " fps \0");
 		}
 		
 		
 		vec3 textSize = app->assetManager.getTextSize(ent.Text->str, ent.Text->fontIndex);
-		ent.Text->lineCount = textSize.y;
+		ent.Text->lineCount = (u8)textSize.y;
 		ent.syncText();
 
 		ent.copyTransform();
