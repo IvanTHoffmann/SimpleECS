@@ -1,23 +1,43 @@
 #include "SimpleECS/util.hpp"
 
-std::string nameMap::getName(u16 index) { 
-	return "error :("; 
+bool NameMap::getName(std::string* out, u16 index) {
+	if (IDToStr.find(index) != IDToStr.end()) {
+		*out = IDToStr[index];
+		return true;
+	}
+	return false;
 }
 
-u16 nameMap::getIndex(std::string name) { 
-	return map[name] - 1; 
+bool NameMap::getIndex(u16* index, std::string name) { 
+	if (StrToID.find(name) != StrToID.end()) {
+		*index = StrToID[name];
+		return true;
+	}
+	return false;
 }
 
-void nameMap::setIndex(std::string name, u16 index) { 
-	map[name] = index + 1; 
+void NameMap::add(std::string name, u16 index) { 
+	StrToID[name] = index; 
+	IDToStr[index] = name;
 }
 
-void nameMap::clear() { 
-	map.clear(); 
+void NameMap::clear() { 
+	StrToID.clear(); 
+	IDToStr.clear(); 
 }
 
-void nameMap::removeByName(std::string name) { 
-	map.erase(name); 
+void NameMap::remove(std::string name) {
+	if (StrToID.find(name) != StrToID.end()) {
+		IDToStr.erase(StrToID[name]);
+		StrToID.erase(name);
+	}
+}
+
+void NameMap::remove(u16 index) {
+	if (IDToStr.find(index) != IDToStr.end()) {
+		StrToID.erase(IDToStr[index]);
+		IDToStr.erase(index);
+	}
 }
 
 void printMatrix(mat4 m) {

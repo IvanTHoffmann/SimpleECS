@@ -39,18 +39,17 @@ void printMatrix(mat4 m);
 #define INVALID_INDEX_16 ((u16)(-1))
 #define INVALID_INDEX ((u32)(-1))
 
-class nameMap {
+class NameMap {
 private:
-	std::map<std::string, u16> map;
-
+	std::map<std::string, u16> StrToID;
+	std::map<u16, std::string> IDToStr;
 public:
-
-	std::string getName(u16 index);
-	u16 getIndex(std::string name);
-	void setIndex(std::string name, u16 index);
-
+	bool getName(std::string* name, u16 index);
+	bool getIndex(u16* index, std::string name);
+	void add(std::string name, u16 index);
+	void remove(std::string name);
+	void remove(u16 id);
 	void clear();
-	void removeByName(std::string name);
 };
 
 #define PRINT_VAR(v, t) printf(#v ": %" #t "\n", v);

@@ -51,10 +51,8 @@ private:
 	PrefabData prefabs[MAX_PREFABS];
 	u8 prefabCount;
 
-
 public:
-
-	nameMap prefabNames, entityNames;
+	NameMap prefabNames, entityNames;
 	u8 maxPrefabs = MAX_PREFABS;
 	
 	ComponentManager();
@@ -72,6 +70,7 @@ public:
 	bool getPrefab(PrefabData**, u16 id);
 	bool getPrefab(PrefabData**, std::string name);
 	bool getPrefabID(u16*, std::string name);
+	bool getPrefabName(std::string* out, u16 id);
 
 	bool getCompPtr(u8** p, u16 compID, u16 prefabID, u32 entIndex);
 	bool getCompPtr(u8** p, u16 compID, u32 compIndex = 0);

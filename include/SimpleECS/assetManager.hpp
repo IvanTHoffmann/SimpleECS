@@ -87,7 +87,7 @@ struct SoundInfo { // WAV file must have int16 sample size and 44100 sample rate
 class AssetManager {
 private:
 	Application* app;
-	nameMap fboNames, shaderNames, modelNames, textureNames, fontNames, soundNames;
+	NameMap fboNames, shaderNames, modelNames, textureNames, fontNames, soundNames;
 
 public:
 	FrameBufferInfo fbos[MAX_FBOS];

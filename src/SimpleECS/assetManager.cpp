@@ -66,14 +66,14 @@ u16 AssetManager::loadFbo(std::string name, u16 w, u16 h) {
 		return INVALID_INDEX_16;
 	}
 
-	fboNames.setIndex(name, fboIndex);
+	fboNames.add(name, fboIndex);
 	FrameBufferInfo* fbo = fbos + fboIndex;
 	fbo->flags |= ASSET_ACTIVE;
 	fbo->w = w;
 	fbo->h = h;
 	fbo->texIndex = texIndex;
 
-	textureNames.setIndex(name, texIndex);
+	textureNames.add(name, texIndex);
 	TextureInfo* tex = textures + fbo->texIndex;
 	tex->flags |= ASSET_ACTIVE;
 	tex->w = w;
@@ -432,23 +432,23 @@ void AssetManager::loadWAV(SoundInfo* soundInfo, std::string filename) {
 }
 
 u16 AssetManager::getFboIndex(std::string name) {
-	u16 index = fboNames.getIndex(name);
-	if (index != INVALID_INDEX_16) {
+	u16 index;
+	if (fboNames.getIndex(&index, name)) {
 		return index;
 	}
 	return INVALID_INDEX_16;
 }
 
 u16 AssetManager::getShaderIndex(std::string name, bool loadNew) {
-	u16 index = shaderNames.getIndex(name);
-	if (index != INVALID_INDEX_16) {
+	u16 index;
+	if (shaderNames.getIndex(&index, name)) {
 		return index;
 	}
 
 	for (index = 0; index < MAX_SHADERS; index++) {
 		if (!(shaders[index].flags & ASSET_ACTIVE)) {
 			if (loadNew) {
-				shaderNames.setIndex(name, index);
+				shaderNames.add(name, index);
 				shaders[index].flags |= ASSET_ACTIVE;
 				compileShader(shaders + index, ASSETS_PATH "shaders\\" + name + ".vert", ASSETS_PATH "shaders\\" + name + ".frag");
 			}
@@ -461,15 +461,15 @@ u16 AssetManager::getShaderIndex(std::string name, bool loadNew) {
 }
 
 u16 AssetManager::getModelIndex(std::string name, bool loadNew) {
-	u16 index = modelNames.getIndex(name);
-	if (index != INVALID_INDEX_16) {
+	u16 index;
+	if (modelNames.getIndex(&index, name)) {
 		return index;
 	}
 
 	for (index = 0; index < MAX_MODELS; index++) {
 		if (!(models[index].flags & ASSET_ACTIVE)) {
 			if (loadNew) {
-				modelNames.setIndex(name, index);
+				modelNames.add(name, index);
 				models[index].flags |= ASSET_ACTIVE;
 				loadMODEL(models + index, ASSETS_PATH "models\\" + name + ".MODEL");
 			}
@@ -482,15 +482,15 @@ u16 AssetManager::getModelIndex(std::string name, bool loadNew) {
 }
 
 u16 AssetManager::getTextureIndex(std::string name, bool loadNew) {
-	u16 index = textureNames.getIndex(name);
-	if (index != INVALID_INDEX_16) {
+	u16 index;
+	if (textureNames.getIndex(&index, name)) {
 		return index;
 	}
 
 	for (index = 0; index < MAX_TEXTURES; index++) {
 		if (!(textures[index].flags & ASSET_ACTIVE)) {
 			if (loadNew) {
-				textureNames.setIndex(name, index);
+				textureNames.add(name, index);
 				textures[index].flags |= ASSET_ACTIVE;
 				loadTexture(textures + index, ASSETS_PATH "textures\\" + name + ".bmp", true);
 			}
@@ -503,15 +503,15 @@ u16 AssetManager::getTextureIndex(std::string name, bool loadNew) {
 } 
 
 u16 AssetManager::getFontIndex(std::string name, bool loadNew) {
-	u16 index = fontNames.getIndex(name);
-	if (index != INVALID_INDEX_16) {
+	u16 index;
+	if (fontNames.getIndex(&index, name)) {
 		return index;
 	}
 
 	for (index = 0; index < MAX_FONTS; index++) {
 		if (!(fonts[index].flags & ASSET_ACTIVE)) {
 			if (loadNew) {
-				fontNames.setIndex(name, index);
+				fontNames.add(name, index);
 				fonts[index].flags |= ASSET_ACTIVE;
 				loadFont(fonts + index, name, true);
 			}
@@ -524,15 +524,15 @@ u16 AssetManager::getFontIndex(std::string name, bool loadNew) {
 }
 
 u16 AssetManager::getSoundIndex(std::string name, bool loadNew) {
-	u16 index = soundNames.getIndex(name);
-	if (index != INVALID_INDEX_16) {
+	u16 index;
+	if (soundNames.getIndex(&index, name)) {
 		return index;
 	}
 
 	for (index = 0; index < MAX_SOUNDS; index++) {
 		if (!(sounds[index].flags & ASSET_ACTIVE)) {
 			if (loadNew) {
-				soundNames.setIndex(name, index);
+				soundNames.add(name, index);
 				sounds[index].flags |= ASSET_ACTIVE;
 				loadWAV(sounds + index, ASSETS_PATH "audio\\" + name + ".wav");
 			}

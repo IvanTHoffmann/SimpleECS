@@ -13,15 +13,8 @@ bool shouldSync(u8* reference, u8* copy) {
 	return reference == nullptr;
 }
 
-#define COPY_DEF(c) bool Entity::copy ## c() { \
-if (!ref ## c()) {return false;} \
-c ## Copy = *c; c = &(c ## Copy); return true; }
-
-#define SYNC_DEF(c) bool Entity::sync ## c() { \
-if (!shouldSync((u8*)c, (u8*)&c##Copy)) { return false; } \
-if (!ref ## c()) { return false; } \
-*c = c ## Copy; return true; }
-
+#define COPY_DEF(c) bool Entity::copy ## c() { if (ref ## c()) { c ## Copy = *c; c = &(c ## Copy); return true; } }
+#define SYNC_DEF(c) bool Entity::sync ## c() { if (shouldSync((u8*)c, (u8*)&c##Copy) && ref ## c()) { *c = c ## Copy; return true; } return false; }
 #define REF_DEF(c) bool Entity::ref ## c() { return app->componentManager.getCompPtr((u8**)(&c), COMP_ENUM(c), prefabID, index); }
 
 FOREACH_COMP(COPY_DEF);
@@ -213,9 +206,10 @@ bool Entity::destroy() {
 	return true;
 }
 
-
 bool Entity::byName(std::string name) {
-	return setGlobalIndex(app->componentManager.entityNames.getIndex(name));
+	u16 index;
+	app->componentManager.entityNames.getIndex(&index, name);
+	return setGlobalIndex(index);
 }
 
 void Entity::setName(std::string name) {
@@ -224,7 +218,7 @@ void Entity::setName(std::string name) {
 		std::cout << "ERROR: Entity.setName: Could not set entity name to \"" << name << "\"\n";
 		return;
 	}
-	app->componentManager.entityNames.setIndex(name, globalIndex);
+	app->componentManager.entityNames.add(name, globalIndex);
 }
 
 bool Entity::getGlobalIndex(u32* id) {

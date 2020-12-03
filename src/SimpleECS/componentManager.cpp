@@ -21,7 +21,7 @@ void ComponentManager::setApp(Application* _app) {
 u16 ComponentManager::addPrefab(std::string name, u32 capacity, compMask mask, u8 flags) {
 	for (u16 i = 0; i < maxPrefabs; i++) {
 		if (!(prefabs[i].flags && PREFAB_ACTIVE)) {
-			prefabNames.setIndex(name, i);
+			prefabNames.add(name, i);
 			prefabs[i].flags = flags | PREFAB_ACTIVE;
 			prefabs[i].capacity = capacity;
 			prefabs[i].size = 0;
@@ -60,24 +60,6 @@ void ComponentManager::recalculateMemory() {
 
 	// ALLOCATE MEMORY
 
-	/*
-	if (bytes > dataSize) {
-		if (dataSize) {
-			u8* newData = (u8*)realloc(data, bytes);
-			if (newData == nullptr) {
-				std::cout << "ERROR: Memory reallocation failed\n";
-				free(data);
-				return;
-			}
-		}
-		else {
-			data = (u8*)calloc(bytes, 1);
-		}
-		dataSize = bytes;
-	}
-	*/
-
-	//*
 	if (data) {
 		app->memoryManager.freeTo(data);
 	}
@@ -88,7 +70,6 @@ void ComponentManager::recalculateMemory() {
 	for (u32 i = 0; i < dataSize; i++) {
 		dataPtr[i] = 0;
 	}
-	//*/
 }
 
 // TODO: finish removePrefab functions
@@ -99,10 +80,10 @@ void ComponentManager::removePrefab(u16 prefabID) {
 }
 
 void ComponentManager::removePrefab(std::string name) {
+	prefabNames.remove(name);
 	u16 prefabID;
 	if (!getPrefabID(&prefabID, name)) { return; }
 	prefabs[prefabID].flags = 0;
-
 }
 //
 
@@ -120,11 +101,19 @@ bool ComponentManager::getPrefab(PrefabData** out, u16 id) {
 }
 
 bool ComponentManager::getPrefab(PrefabData** out, std::string name) {
-	return getPrefab(out, prefabNames.getIndex(name));
+	u16 index;
+	if (!prefabNames.getIndex(&index, name)) {
+		return false;
+	}
+	return getPrefab(out, index);
 }
 
 bool ComponentManager::getPrefabID(u16* out, std::string name) {
-	return (*out = prefabNames.getIndex(name)) < prefabCount;
+	return prefabNames.getIndex(out, name);
+}
+
+bool ComponentManager::getPrefabName(std::string* out, u16 id) {
+	return prefabNames.getName(out, id);
 }
 
 // TODO: Make sure these functions can never crash

@@ -9,7 +9,7 @@
 Clean up engine code. Check for obsolete variables and places to optimize.
 
 RENDER
--Fix the camera rotation. The model attached to it rotates in the opposite direction.
+-Fix the camera rotation. The attached model rotates in the opposite direction.
 
 GUI
 -Write a function to convert inches to pixels
