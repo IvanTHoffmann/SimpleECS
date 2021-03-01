@@ -14,6 +14,7 @@ void updateCharacterSystem(CB_PARAMS) {
 		player.refInput();
 		player.refCharacter();
 		player.copyTransform();
+		player.copyRigidbody();
 
 
 		while (cam.next()) {
@@ -21,26 +22,43 @@ void updateCharacterSystem(CB_PARAMS) {
 			if (cam.Input->controllerId == player.Input->controllerId) {
 				cam.refTransform();
 				inputDir.y = 2 * (cam.Transform->rot.x * cam.Transform->rot.z + cam.Transform->rot.w * cam.Transform->rot.y);
-				inputDir.x = cam.Transform->rot.w * cam.Transform->rot.w - 
-							 cam.Transform->rot.x * cam.Transform->rot.x - 
-							 cam.Transform->rot.y * cam.Transform->rot.y +
-							 cam.Transform->rot.z * cam.Transform->rot.z;
+				inputDir.x = cam.Transform->rot.w * cam.Transform->rot.w -
+					cam.Transform->rot.x * cam.Transform->rot.x -
+					cam.Transform->rot.y * cam.Transform->rot.y +
+					cam.Transform->rot.z * cam.Transform->rot.z;
 				inputDir = normalize(inputDir);
 				break;
 			}
 		}
 
-		vec3 velocity(player.Input->axis[AXIS_LH], 0, player.Input->axis[AXIS_LV]);
+		player.Rigidbody->vel.y -= 20 * evnt->dt;
 
-		float mag = length(velocity);
-		if (mag > 1) {
-			velocity /= mag;
+		if (player.Transform->pos.y < 5) { // grounded
+			player.Transform->pos.y = 5;
+			player.Rigidbody->vel.y = 0;
+
+			player.Rigidbody->vel.x *= 1 - 5 * evnt->dt;
+			player.Rigidbody->vel.z *= 1 - 5 * evnt->dt;
+
+			vec3 localAccel(player.Input->axis[AXIS_LH] * inputDir.x + player.Input->axis[AXIS_LV] * -inputDir.y, 0,
+				player.Input->axis[AXIS_LH] * inputDir.y + player.Input->axis[AXIS_LV] * inputDir.x);
+			float mag = length(localAccel);
+			if (mag > 1) {
+				localAccel /= mag;
+			}
+			localAccel *= player.Character->speed;
+			player.Rigidbody->vel += localAccel * evnt->dt;
+
+			if (player.Input->triggers & INPUT_TRIGGER_JUMP) {
+				player.Rigidbody->vel.y += 10;
+			}
 		}
-		velocity *= player.Character->speed;
+		else {
+			player.Input->triggers &= ~INPUT_TRIGGER_JUMP;
+		}
 
-		player.Transform->pos.x += (velocity[0] * inputDir.x + velocity[2] * -inputDir.y) * evnt->dt;
-		player.Transform->pos.y += velocity[1] * evnt->dt;
-		player.Transform->pos.z += (velocity[0] * inputDir.y + velocity[2] * inputDir.x) * evnt->dt;
+		player.Transform->pos += player.Rigidbody->vel * evnt->dt;
 		player.syncTransform();
+		player.syncRigidbody();
 	}
 }

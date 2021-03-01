@@ -11,7 +11,7 @@ void initLoaderSystem(CB_PARAMS) {
 	// register classes
 
 	comps->addPrefab("misc", 5, CharacterBit | InputBit | TransformBit | MeshBit | ChildBit);
-	comps->addPrefab("player", 1, CharacterBit | InputBit | TransformBit);
+	comps->addPrefab("player", 1, CharacterBit | InputBit | TransformBit | RigidbodyBit);
 	comps->addPrefab("model", 10, TransformBit | MeshBit, PREFAB_MEM_PACK);
 	comps->addPrefab("camera", 2, CameraBit | InputBit | TransformBit | ChildBit | ListenerBit | MeshBit);
 	comps->addPrefab("text", 3, TextBit | GuiBit | TransformBit);
@@ -45,7 +45,7 @@ void initLoaderSystem(CB_PARAMS) {
 
 	ent.copyMesh();
 	ent.Mesh->meshId = assets->getModelIndex("sphere");
-	ent.Mesh->texId = assets->getTextureIndex("crate");
+	ent.Mesh->diffuseId = assets->getTextureIndex("cobble/diffuse");
 	ent.Mesh->tiling = vec2(1);
 	ent.syncMesh();
 
@@ -68,11 +68,11 @@ void initLoaderSystem(CB_PARAMS) {
 
 	ent.copyMesh();
 	ent.Mesh->meshId = assets->getModelIndex("sphere");
-	ent.Mesh->texId = assets->getTextureIndex("crate");
+	ent.Mesh->diffuseId = assets->getTextureIndex("crate");
+	ent.Mesh->normalId = -1;
+	ent.Mesh->specularId = -1;
 	ent.Mesh->tiling = vec2(1);
 	ent.syncMesh();
-	
-
 
 	//* music
 	ent.create("sound");
@@ -92,7 +92,9 @@ void initLoaderSystem(CB_PARAMS) {
 
 	ent.copyMesh();
 	ent.Mesh->meshId = assets->getModelIndex("sphere");
-	ent.Mesh->texId = assets->getTextureIndex("crate");
+	ent.Mesh->diffuseId = assets->getTextureIndex("crate");
+	ent.Mesh->normalId = -1;
+	ent.Mesh->specularId = -1;
 	ent.Mesh->tiling = vec2(1);
 	ent.syncMesh();
 	//*/
@@ -104,7 +106,9 @@ void initLoaderSystem(CB_PARAMS) {
 	ent.Transform->scale = vec3(10, 5.2, 1);
 	ent.copyMesh();
 	ent.Mesh->meshId = assets->getModelIndex("rect");
-	ent.Mesh->texId = assets->getTextureIndex("fbo-copy");
+	ent.Mesh->diffuseId = assets->getTextureIndex("fbo-copy");
+	ent.Mesh->normalId = -1;
+	ent.Mesh->specularId = -1;
 	ent.Mesh->tiling = vec2(1);
 	ent.syncMesh();
 	//*/ 
@@ -123,7 +127,7 @@ void initLoaderSystem(CB_PARAMS) {
 	ent.Transform->rot = quat(1, 0, 0, 0);
 	ent.Transform->scale = vec3(2);
 
-	//*/
+	//
 
 	//* balls
 	u32 lastShapeIndex = INVALID_INDEX;
@@ -132,14 +136,17 @@ void initLoaderSystem(CB_PARAMS) {
 	for (int i = 0; i < 12; i++) {
 		ent.create("rigidbody");
 		ent.refTransform();
-		ent.Transform->pos = vec3(4 * (i + 1), 50 + (4*i), -20);
+		ent.Transform->pos = vec3(4 * (i + 1), 10 + (4*i), -20);
 		ent.Transform->rot = quat(1, 0, 0, 0);
 		ent.Transform->scale = vec3(2);
-		ent.copyMesh();
+		ent.refMesh();
 		ent.Mesh->meshId = assets->getModelIndex("sphere");
-		ent.Mesh->texId = assets->getTextureIndex("crate");
+		ent.Mesh->diffuseId = assets->getTextureIndex("crate");
+		ent.Mesh->normalId = INVALID_INDEX;
+		ent.Mesh->specularId = INVALID_INDEX;
 		ent.Mesh->tiling = vec2(1);
-		ent.syncMesh();
+		ent.refRigidbody();
+		ent.Rigidbody->invMass = 1;
 
 		ent.getGlobalIndex(&curBodyIndex);
 
@@ -176,20 +183,25 @@ void initLoaderSystem(CB_PARAMS) {
 	ent.Transform->scale = vec3(30);
 	ent.copyMesh();
 	ent.Mesh->meshId = assets->getModelIndex("map");
-	ent.Mesh->texId = assets->getTextureIndex("cobble");
+	ent.Mesh->diffuseId = assets->getTextureIndex("cobble/diffuse");
+	ent.Mesh->normalId = assets->getTextureIndex("cobble/normal");
+	ent.Mesh->specularId = assets->getTextureIndex("cobble/specular");
 	ent.Mesh->tiling = vec2(20);
 	ent.syncMesh();
 
 	// Player
 	ent.create("player");
 	ent.refCharacter();
-	ent.Character->speed = 10;
+	ent.Character->speed = 100;
 	
 	ent.refTransform();
 	ent.Transform->pos = vec3(0,5,0);
 	ent.refInput();
 	ent.Input->controllerId = 0;
 	ent.Input->sensitivity = 60.0f / 225;
+	ent.refRigidbody();
+	ent.Rigidbody->vel = vec3();
+	ent.Rigidbody->invMass = 0;
 
 	u32 playerIndex;
 	ent.getGlobalIndex(&playerIndex);
@@ -198,7 +210,9 @@ void initLoaderSystem(CB_PARAMS) {
 	ent.create("camera");
 	ent.copyMesh();
 	ent.Mesh->meshId = assets->getModelIndex("sphere");
-	ent.Mesh->texId = assets->getTextureIndex("cobble");
+	ent.Mesh->diffuseId = assets->getTextureIndex("cobble");
+	ent.Mesh->normalId = -1;
+	ent.Mesh->specularId = -1;
 	ent.Mesh->tiling = vec2(1);
 	ent.syncMesh();
 	ent.refTransform();
@@ -220,7 +234,9 @@ void initLoaderSystem(CB_PARAMS) {
 	ent.create("camera");
 	ent.copyMesh();
 	ent.Mesh->meshId = assets->getModelIndex("sphere");
-	ent.Mesh->texId = assets->getTextureIndex("cobble");
+	ent.Mesh->diffuseId = assets->getTextureIndex("cobble");
+	ent.Mesh->normalId = -1;
+	ent.Mesh->specularId = -1;
 	ent.Mesh->tiling = vec2(1);
 	ent.syncMesh();
 	ent.refTransform();
@@ -244,7 +260,9 @@ void initLoaderSystem(CB_PARAMS) {
 	ent.create("gui");
 	ent.copyMesh();
 	ent.Mesh->meshId = assets->getModelIndex("rect");
-	ent.Mesh->texId = assets->getTextureIndex("fbo-default");
+	ent.Mesh->diffuseId = assets->getTextureIndex("fbo-default");
+	ent.Mesh->normalId = -1;
+	ent.Mesh->specularId = -1;
 	ent.Mesh->tiling = vec2(1);
 	ent.syncMesh();
 	ent.refGui();
@@ -263,7 +281,9 @@ void initLoaderSystem(CB_PARAMS) {
 	ent.create("gui");
 	ent.copyMesh();
 	ent.Mesh->meshId = assets->getModelIndex("rect");
-	ent.Mesh->texId = assets->getTextureIndex("fbo-split");
+	ent.Mesh->diffuseId = assets->getTextureIndex("fbo-split");
+	ent.Mesh->normalId = -1;
+	ent.Mesh->specularId = -1;
 	ent.Mesh->tiling = vec2(1);
 	ent.syncMesh();
 	ent.refGui();
@@ -284,7 +304,9 @@ void initLoaderSystem(CB_PARAMS) {
 	ent.create("gui");
 	ent.copyMesh();
 	ent.Mesh->meshId = assets->getModelIndex("rect");
-	ent.Mesh->texId = assets->getTextureIndex("crosshair"); 
+	ent.Mesh->diffuseId = assets->getTextureIndex("crosshair");
+	ent.Mesh->normalId = -1;
+	ent.Mesh->specularId = -1;
 	ent.Mesh->tiling = vec2(1);
 	ent.syncMesh();
 	ent.refGui();

@@ -88,6 +88,9 @@ void onKey(GLFWwindow *window, int key, int scancode, int action, int mods) {
 			case GLFW_KEY_D:
 				inputInfo->d = action;
 				break;
+			case GLFW_KEY_SPACE:
+				inputInfo->space = action;
+				break;
 			case GLFW_KEY_ESCAPE:
 				if (action == 1) {
 					inputInfo->windowState ^= WIN_MOUSE_LOCKED; // toggle mouse lock
@@ -201,6 +204,9 @@ void updateInputSystem(CB_PARAMS) {
 				//input.axis[AXIS_RV] *= input.deceleration * evnt->dt;
 				ent.Input->axis[AXIS_RH] = appData->inputInfo.mouseDX * ent.Input->sensitivity;
 				ent.Input->axis[AXIS_RV] = appData->inputInfo.mouseDY * ent.Input->sensitivity;
+				if (!(ent.Input->triggers & INPUT_TRIGGER_JUMP) && appData->inputInfo.space) {
+					ent.Input->triggers |= INPUT_TRIGGER_JUMP;
+				}
 				ent.syncInput();
 			}
 		}

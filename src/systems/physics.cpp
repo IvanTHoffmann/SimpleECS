@@ -38,40 +38,59 @@ void updatePhysicsSystem(CB_PARAMS) {
 
 	float dt = evnt->dt / appData->physicsInfo.steps;
 
+	vec3 gravityDt = appData->physicsInfo.gravity * dt;
+
 	for (u8 i = 0; i < appData->physicsInfo.steps; i++) {
 		body.setPrefab("rigidbody");
+
+		// predict position
 		while (body.next()) { // move body
 			body.copyTransform();
 			body.copyRigidbody();
 
-			body.Rigidbody->lastPos = body.Transform->pos;
-			body.Rigidbody->lastRot = body.Transform->rot;
-			body.Rigidbody->vel += appData->physicsInfo.gravity * dt;
-			body.Transform->pos += body.Rigidbody->vel * dt;
-			body.Transform->rot *= body.Rigidbody->spin * dt;
+			if (body.Rigidbody->invMass)
+			{
+				body.Rigidbody->lastPos = body.Transform->pos;
+				body.Rigidbody->lastRot = body.Transform->rot;
+				body.Rigidbody->lastVel = body.Rigidbody->vel;
+				body.Rigidbody->vel += gravityDt;
+				body.Transform->pos += body.Rigidbody->vel * dt;
+				body.Transform->rot *= body.Rigidbody->spin * dt;
 
-			body.syncTransform();
-			body.syncRigidbody();
+				body.syncTransform();
+				body.syncRigidbody();
+			}
 		}
 
+		// correct position
 		c0.setPrefab("constraint");
 		while (c0.next()) { // update constraints
 			c0.refConstraint();
 
 			if (IS_SHAPE(c0.Constraint->type)) {
-				
+				if (!c0.Constraint->body) {
+					continue;
+				}
+				body.setGlobalIndex(c0.Constraint->body);
+
+				body.copyTransform();
+				body.copyRigidbody();
+
+				if (body.Transform->pos.y < body.Transform->scale.y) {
+					// colliding with ground
+					body.Transform->pos.y = body.Transform->scale.y;
+					c0.Constraint->flags |= CONSTRAINT_ACTIVE;
+				}
+				else {
+					c0.Constraint->flags &= ~CONSTRAINT_ACTIVE;
+				}
+
+				body.syncTransform();
+				body.syncRigidbody();
 			}
-
-			// get a pair of constraints
-
-
-			// getGlobalJointTransforms(&globalA, &globalB, &constraint, bodyA, bodyB);
-
-			// update body orientations
-
-			// update body positions
 		}
 
+		// predict velocity
 		body.setPrefab("rigidbody");
 		while (body.next()) { // update body velocities
 			body.refTransform();
@@ -86,10 +105,22 @@ void updatePhysicsSystem(CB_PARAMS) {
 
 		}
 
+		// correct velocity
 		c0.setPrefab("constraint");
 		while (c0.next()) { // solve friction and restitution
 			c0.refConstraint();
 
+			if (c0.Constraint->flags & CONSTRAINT_ACTIVE && IS_SHAPE(c0.Constraint->type)) {
+				body.setGlobalIndex(c0.Constraint->body);
+
+				body.copyRigidbody();
+
+				body.Rigidbody->lastVel.y *= -1;
+				body.Rigidbody->vel.y = body.Rigidbody->lastVel.y;
+
+				body.syncRigidbody();
+				c0.Constraint->flags &= ~CONSTRAINT_ACTIVE;
+			}
 		}
 	}
 }

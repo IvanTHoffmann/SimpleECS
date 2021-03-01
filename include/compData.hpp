@@ -51,6 +51,8 @@ struct Offset {
 	quat rot;
 };
 
+#define CONSTRAINT_ACTIVE 1
+
 struct COMP_TYPE(Constraint) {
 	u8 flags;
 	u8 type;
@@ -58,9 +60,9 @@ struct COMP_TYPE(Constraint) {
 	u32 body;
 	u32 connections[4]; // constraints can limit bodies or other constraints
 	Offset offsets[2];
-	float restitution;
 	float staticFriction;
 	float dynamicFriction;
+	float restitution;
 	float compliance;
 };
 
@@ -68,7 +70,7 @@ struct COMP_TYPE(Rigidbody) {
 	u8 flags;
 	float invMass;
 	mat4 invInertia;
-	vec3 vel, lastPos;
+	vec3 lastVel, lastPos, vel;
 	quat spin, lastRot;
 };
 
@@ -80,9 +82,12 @@ struct COMP_TYPE(Transform) {
 
 // CONTROL
 
+#define INPUT_TRIGGER_JUMP 1
+
 struct COMP_TYPE(Input) {
 	u8 flags;
 	u8 controllerId;
+	u8 triggers;
 	float sensitivity, deceleration;
 	float axis[AXIS_COUNT];
 	unsigned char button[BUTTON_COUNT]; // TODO: replace with bitmask
@@ -105,7 +110,9 @@ struct COMP_TYPE(Camera) {
 struct COMP_TYPE(Mesh) {
 	u8 flags;
 	GLuint meshId;
-	GLuint texId;
+	GLuint diffuseId;
+	GLuint normalId;
+	GLuint specularId;
 	vec2 tiling;
 };
 

@@ -16,7 +16,7 @@ struct InputInfo {
 
 	double mouseX, mouseY;
 	int mouseLB, mouseRB;
-	int w, a, s, d;
+	int w, a, s, d, space;
 	int mouseDX, mouseDY;
 	int scrollX, scrollY;
 };

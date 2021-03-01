@@ -1,7 +1,6 @@
 #version 450
 
 uniform sampler2D tex;
-uniform sampler2D normalMap;
 uniform vec2 tiling;
 
 in vec3 viewPos;

@@ -204,6 +204,9 @@ void AssetManager::compileShader(ShaderInfo* shaderInfo, std::string vert, std::
 	shaderInfo->uniforms[U_CAM_POS] = glGetUniformLocation(shaderInfo->id, "camPos");
 	shaderInfo->uniforms[U_LERP] = glGetUniformLocation(shaderInfo->id, "lerp");
 	shaderInfo->uniforms[U_TILING] = glGetUniformLocation(shaderInfo->id, "tiling");
+	shaderInfo->uniforms[U_DIFFUSE_TEX] = glGetUniformLocation(shaderInfo->id, "diffuseTex");
+	shaderInfo->uniforms[U_NORMAL_TEX] = glGetUniformLocation(shaderInfo->id, "normalTex");
+	shaderInfo->uniforms[U_SPECULAR_TEX] = glGetUniformLocation(shaderInfo->id, "specularTex");
 }
 
 GLuint AssetManager::loadShader(std::string filename, const GLuint shaderType) {
@@ -439,7 +442,9 @@ u16 AssetManager::getFboIndex(std::string name) {
 	return INVALID_INDEX_16;
 }
 
-u16 AssetManager::getShaderIndex(std::string name, bool loadNew) {
+u16 AssetManager::getShaderIndex(std::string vert, std::string frag, bool loadNew) {
+	std::string name = vert + "/" + frag;
+
 	u16 index;
 	if (shaderNames.getIndex(&index, name)) {
 		return index;
@@ -450,7 +455,7 @@ u16 AssetManager::getShaderIndex(std::string name, bool loadNew) {
 			if (loadNew) {
 				shaderNames.add(name, index);
 				shaders[index].flags |= ASSET_ACTIVE;
-				compileShader(shaders + index, ASSETS_PATH "shaders\\" + name + ".vert", ASSETS_PATH "shaders\\" + name + ".frag");
+				compileShader(shaders + index, ASSETS_PATH "shaders\\" + vert + ".vert", ASSETS_PATH "shaders\\" + frag + ".frag");
 			}
 			return index;
 		}
@@ -458,6 +463,10 @@ u16 AssetManager::getShaderIndex(std::string name, bool loadNew) {
 
 	std::cout << "ERROR: Attempted to exceed maximum number of shaders\n";
 	return INVALID_INDEX_16;
+}
+
+u16 AssetManager::getShaderIndex(std::string name, bool loadNew) {
+	return getShaderIndex(name, name, loadNew);
 }
 
 u16 AssetManager::getModelIndex(std::string name, bool loadNew) {
@@ -553,6 +562,7 @@ ModelInfo* AssetManager::getModel(std::string name) { return models + getModelIn
 FontInfo* AssetManager::getFont(u16 index) { return fonts + index; }
 FontInfo* AssetManager::getFont(std::string name) { return fonts + getFontIndex(name); }
 ShaderInfo* AssetManager::getShader(u16 index) { return shaders + index; }
+ShaderInfo* AssetManager::getShader(std::string vert, std::string frag) { return shaders + getShaderIndex(vert, frag); }
 ShaderInfo* AssetManager::getShader(std::string name) { return shaders + getShaderIndex(name); }
 SoundInfo* AssetManager::getSound(u16 index) { return sounds + index; }
 SoundInfo* AssetManager::getSound(std::string name) { return sounds + getSoundIndex(name); }

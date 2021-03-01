@@ -16,6 +16,9 @@ enum Uniforms {
 	U_CAM_POS,
 	U_LERP,
 	U_TILING,
+	U_DIFFUSE_TEX,
+	U_NORMAL_TEX,
+	U_SPECULAR_TEX,
 	U_COUNT
 };
 
@@ -122,6 +125,7 @@ public:
 	u16 getTextureIndex(std::string name, bool loadNew = true);
 	u16 getModelIndex(std::string name, bool loadNew = true);
 	u16 getFontIndex(std::string name, bool loadNew = true);
+	u16 getShaderIndex(std::string vert, std::string frag, bool loadnew = true);
 	u16 getShaderIndex(std::string name, bool loadNew = true);
 	u16 getSoundIndex(std::string name, bool loadNew = true);
 
@@ -134,6 +138,7 @@ public:
 	FontInfo* getFont(u16 index);
 	FontInfo* getFont(std::string name);
 	ShaderInfo* getShader(u16 index);
+	ShaderInfo* getShader(std::string vert, std::string frag);
 	ShaderInfo* getShader(std::string name);
 	SoundInfo* getSound(u16 index);
 	SoundInfo* getSound(std::string name);

@@ -86,7 +86,7 @@ void onUpdate(CB_PARAMS) {
 
 	evnt->deleted = false;
 	if (!appData->doubleBuf) {
-		evnt->targetTime = evnt->lastTime + 16 * MILLISECOND; // TODO: set framerate in a more flexible way
+		//evnt->targetTime = evnt->lastTime + 16 * MILLISECOND; // TODO: set framerate in a more flexible way
 	}
 }
 

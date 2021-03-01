@@ -12,10 +12,10 @@ void updateUISystem(CB_PARAMS) {
 		ent.copyText();
 
 		if (ent.getIndex() == 0) { // This assumes that the zeroth text entity is the fps counter
-			appData->fpsSum -= appData->fpsSum >> 2;
+			appData->fpsSum -= appData->fpsSum >> 4;
 			appData->fpsSum += (u16)(10 / evnt->dt) + 1;
 
-			u16 fps = appData->fpsSum >> 2;
+			u16 fps = appData->fpsSum >> 4;
 			u8 i = 0;
 			if (fps >= 10000) {
 				ent.Text->str[i++] = (fps / 10000) % 10 + '0';

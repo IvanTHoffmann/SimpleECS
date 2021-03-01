@@ -35,7 +35,7 @@ project "SimpleECS"
 
    targetdir("$(SolutionDir)_build\\$(Platform)_$(Configuration)")
    objdir("!$(SolutionDir)_int\\$(Platform)_$(Configuration)")
--- basedir("!$(SolutionDir)_build\\$(Platform)_$(Configuration)")
+   --basedir("..")
 
    files {".gitignore", "include\\**.h", "include\\**.hpp", "src\\**.cpp", "_misc\\**", "assets\\**" }
 

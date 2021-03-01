@@ -11,7 +11,7 @@ void initRenderSystem(CB_PARAMS) {
 	}
 
 	glfwWindowHint(GLFW_DOUBLEBUFFER, appData->doubleBuf);
-	appData->window = glfwCreateWindow(100, 100, "GLFWwindow", NULL, NULL);
+	appData->window = glfwCreateWindow(500, 500, "GLFWwindow", NULL, NULL);
 	if (!appData->window) {
 		fprintf(stderr, "ERROR: could not open window with GLFW3\n");
 		glfwTerminate();
@@ -56,7 +56,7 @@ void updateRenderSystem(CB_PARAMS) {
 
 	cam.setPrefab("camera");
 	
-	shader = app->assetManager.getShader("simple");
+	shader = app->assetManager.getShader("simple", "simple");
 
 	glDisable(GL_BLEND);
 
@@ -93,8 +93,23 @@ void updateRenderSystem(CB_PARAMS) {
 		while (ent.next(MeshBit | TransformBit, GuiBit)) {
 			ent.refMesh();
 			glBindVertexArray(app->assetManager.models[ent.Mesh->meshId].vao);
-			glBindTexture(GL_TEXTURE_2D, app->assetManager.textures[ent.Mesh->texId].id);
+			glUniform1i(shader->uniforms[U_DIFFUSE_TEX], 0);
+			glUniform1i(shader->uniforms[U_NORMAL_TEX], 1);
+			glUniform1i(shader->uniforms[U_SPECULAR_TEX], 2);
 
+			glActiveTexture(GL_TEXTURE0 + 0); // Texture unit 2
+			glBindTexture(GL_TEXTURE_2D, app->assetManager.textures[ent.Mesh->diffuseId].id);
+
+			if (ent.Mesh->normalId != (GLuint)(-1)) {
+				glActiveTexture(GL_TEXTURE0 + 1); // Texture unit 2
+				glBindTexture(GL_TEXTURE_2D, app->assetManager.textures[ent.Mesh->normalId].id);
+			}
+			if (ent.Mesh->specularId != (GLuint)(-1)) {
+				glActiveTexture(GL_TEXTURE0 + 2); // Texture unit 2
+				glBindTexture(GL_TEXTURE_2D, app->assetManager.textures[ent.Mesh->specularId].id);
+			}
+
+			
 			glUniform2fv(shader->uniforms[U_TILING], 1, value_ptr(ent.Mesh->tiling));
 
 			ent.refTransform();
@@ -160,7 +175,7 @@ void updateRenderSystem(CB_PARAMS) {
 	while (ent.next()) {
 		ent.refMesh();
 		glBindVertexArray(app->assetManager.models[ent.Mesh->meshId].vao);
-		glBindTexture(GL_TEXTURE_2D, app->assetManager.textures[ent.Mesh->texId].id);
+		glBindTexture(GL_TEXTURE_2D, app->assetManager.textures[ent.Mesh->diffuseId].id);
 
 		ent.refGui();
 		glUniform4fv(shader->uniforms[U_COLOR], 1, value_ptr(ent.Gui->color));
