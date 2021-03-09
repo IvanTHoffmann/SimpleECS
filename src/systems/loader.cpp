@@ -199,8 +199,8 @@ void initLoaderSystem(CB_PARAMS) {
 	ent.refTransform();
 	ent.Transform->pos = vec3(0,5,0);
 	ent.refInput();
-	ent.Input->mask = CONTROLLER_KEYBOARD | CONTROLLER_MOUSE | CONTROLLER_JOY0;
-	ent.Input->sensitivity = 60.0f / 225;
+	ent.Input->HidMask = 0xffff ^ (1 << DEVICE_MOUSE);
+	ent.Input->sensitivity = .1;
 	ent.refRigidbody();
 	ent.Rigidbody->vel = vec3();
 	ent.Rigidbody->invMass = 0;
@@ -225,7 +225,7 @@ void initLoaderSystem(CB_PARAMS) {
 	ent.Camera->fboId = assets->getFboIndex("fbo-split");
 	ent.Camera->fov = 60.0f * TO_RADS;
 	ent.refInput();
-	ent.Input->mask = 0;
+	ent.Input->HidMask = 0;
 	ent.refChild();
 	ent.Child->parent = -1;
 	ent.refListener();
@@ -247,7 +247,7 @@ void initLoaderSystem(CB_PARAMS) {
 	ent.Camera->fboId = assets->getFboIndex("fbo-default");
 	ent.Camera->fov = 60.0f * TO_RADS;
 	ent.refInput();
-	ent.Input->mask = CONTROLLER_KEYBOARD | CONTROLLER_MOUSE | CONTROLLER_JOY0;
+	ent.Input->HidMask = 0xffff;
 	ent.Input->sensitivity = .002f;
 	ent.Input->deceleration = 0.1f;
 	ent.refChild();

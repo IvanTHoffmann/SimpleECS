@@ -57,11 +57,9 @@ struct COMP_TYPE(Transform) {
 // CONTROL
 
 struct COMP_TYPE(Input) {
-	u8 flags, mask;
+	u8 flags;
+	u16 HidMask;
 	float sensitivity, deceleration;
-	float axis[AXIS_COUNT];
-	unsigned char button[BUTTON_COUNT]; // button states
-	unsigned char hat[HAT_COUNT]; // hat states
 };
 
 struct COMP_TYPE(Character) {

@@ -51,7 +51,6 @@ void EventManager::dispatch(cbFunc func, void* data) {
 }
 
 void EventManager::processEvent(Application* app) {
-
 	// TODO: replace this with some sort of standard library queue
 	// or a binary tree where elements are sorted by their timepoint values
 

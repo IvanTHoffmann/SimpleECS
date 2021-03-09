@@ -23,7 +23,7 @@ void onInit(CB_PARAMS) {
 	AssetManager* assets = &app->assetManager;
 	AppData *appData = (AppData*)app->getData();
 	appData->maxDt = 1000 / 20;
-	appData->doubleBuf = false;
+	appData->doubleBuf = true;
 	appData->fpsSum = 0;
 
 	initRenderSystem(CB_ARGS);

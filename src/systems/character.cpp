@@ -18,7 +18,7 @@ void updateCharacterSystem(CB_PARAMS) {
 
 		while (cam.next()) {
 			cam.refInput();
-			if (cam.Input->mask & player.Input->mask) {
+			if (cam.Input->HidMask & player.Input->HidMask) {
 				cam.refTransform();
 				inputDir.y = 2 * (cam.Transform->rot.x * cam.Transform->rot.z + cam.Transform->rot.w * cam.Transform->rot.y);
 				inputDir.x = cam.Transform->rot.w * cam.Transform->rot.w -
@@ -40,8 +40,14 @@ void updateCharacterSystem(CB_PARAMS) {
 			player.Rigidbody->vel.x *= 1 - 5 * evnt->dt;
 			player.Rigidbody->vel.z *= 1 - 5 * evnt->dt;
 
-			vec3 localAccel(player.Input->axis[AXIS_LH] * inputDir.x + player.Input->axis[AXIS_LV] * -inputDir.y, 0,
-				player.Input->axis[AXIS_LH] * inputDir.y + player.Input->axis[AXIS_LV] * inputDir.x);
+			float lh = app->inputManager.getButton(player.Input->HidMask, KEY_D) - app->inputManager.getButton(player.Input->HidMask, KEY_A) + app->inputManager.getAxis(player.Input->HidMask, AXIS_LH);
+			float lv = app->inputManager.getButton(player.Input->HidMask, KEY_S) - app->inputManager.getButton(player.Input->HidMask, KEY_W) + app->inputManager.getAxis(player.Input->HidMask, AXIS_LV);
+
+			lh *= abs(lh) > .2;
+			lv *= abs(lv) > .2;
+
+
+			vec3 localAccel(lh * inputDir.x - lv * inputDir.y, 0, lh * inputDir.y + lv * inputDir.x);
 			float mag = length(localAccel);
 			if (mag > 1) {
 				localAccel /= mag;
@@ -49,7 +55,9 @@ void updateCharacterSystem(CB_PARAMS) {
 			localAccel *= player.Character->speed;
 			player.Rigidbody->vel += localAccel * evnt->dt;
 
-			if (player.Input->button[BUTTON_A] == 3) {
+			u8 jumpButton = app->inputManager.getButton(player.Input->HidMask, 0);
+
+			if (jumpButton == 3) {
 				player.Rigidbody->vel.y += 10;
 			}
 		}

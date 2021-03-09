@@ -9,6 +9,11 @@
 
 Clean up engine code. Check for obsolete variables and places to optimize.
 
+INPUT
+-allocate memory for axes, buttons, and hats when a new joystick is detected. glfw doesnt keep track of whether or not a button was just pressed, so I cant use their buffer.
+-add inputManager method for getting the value according to the function of the input ( ex. getInput(playerId, JUMP) )
+-read input bindings from a file
+
 RENDER
 -Fix the camera rotation. The attached model rotates in the opposite direction.
 
@@ -21,6 +26,7 @@ Audio
 -Support changing audio devices at runtime
 
 Memory
+-Reserve a memory pool for permanent memory that can be 
 -Allocate temporary memory for event data. Possibly just an array of chars in AppData where the oldest data is overwritten.
 
 Crash Prevention
