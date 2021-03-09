@@ -1,7 +1,23 @@
 #pragma once
 
 #include "SimpleECS/decl.hpp"
-#include "compData.hpp" // TODO: Send COMP_COUNT to the component manager at runtime and remove this
+#include "compData.hpp"
+
+#define COMP_ENUM(a) a ## Enum
+#define COMP_BIT(a) a ## Bit
+
+#define DECL_TYPE(a) struct COMP_TYPE(a);
+FOREACH_COMP(DECL_TYPE)
+
+#define DECL_ENUM(a) COMP_ENUM(a),
+enum { FOREACH_COMP(DECL_ENUM) COMP_COUNT_ENUM };
+#define COMP_COUNT COMP_COUNT_ENUM
+
+#define DECL_BIT(a) COMP_BIT(a) = 1<<COMP_ENUM(a),
+enum { FOREACH_COMP(DECL_BIT) };
+
+#define GET_SIZE(a) sizeof(a ## Comp),
+const u16 compSize[COMP_COUNT] = { FOREACH_COMP(GET_SIZE) };
 
 #define compMask std::bitset<COMP_COUNT>
 

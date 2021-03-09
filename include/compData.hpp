@@ -1,9 +1,9 @@
 #pragma once
 
+// TODO: generate this file automatically
+
 #include "SimpleECS/util.hpp"
 
-#define COMP_ENUM(a) a ## Enum
-#define COMP_BIT(a) a ## Bit
 #define COMP_TYPE(a) a ## Comp
 
 #define FOREACH_COMP(f) \
@@ -20,38 +20,12 @@ f(Constraint) \
 f(Sound) \
 f(Listener) \
 
-// PHYSICS
-
-enum {
-	// collision shapes
-	CONSTRAINT_SPHERE,
-	CONSTRAINT_CYLINDER,
-	CONSTRAINT_CIRCLE,
-	CONSTRAINT_CONE,
-	CONSTRAINT_RIGHT_TRI_PRISM,
-	CONSTRAINT_BOX,
-	CONSTRAINT_RECT,
-	CONSTRAINT_SEGMENT,
-	CONSTRAINT_PLANE,
-	CONSTRAINT_LINE,
-	CONSTRAINT_RAY,
-
-#define IS_SHAPE(t) ((t) <= CONSTRAINT_RAY)
-
-	// joints
-	CONSTRAINT_DISTANCE,
-	CONSTARINT_SPRING,
-};
-
-
-#define CONSTRAINT_HOLLOW 0x1
-
 struct Offset {
 	vec3 pos;
 	quat rot;
 };
 
-#define CONSTRAINT_ACTIVE 1
+// PHYSICS
 
 struct COMP_TYPE(Constraint) {
 	u8 flags;
@@ -82,16 +56,12 @@ struct COMP_TYPE(Transform) {
 
 // CONTROL
 
-#define INPUT_TRIGGER_JUMP 1
-
 struct COMP_TYPE(Input) {
-	u8 flags;
-	u8 controllerId;
-	u8 triggers;
+	u8 flags, mask;
 	float sensitivity, deceleration;
 	float axis[AXIS_COUNT];
-	unsigned char button[BUTTON_COUNT]; // TODO: replace with bitmask
-	unsigned char hat[HAT_COUNT];
+	unsigned char button[BUTTON_COUNT]; // button states
+	unsigned char hat[HAT_COUNT]; // hat states
 };
 
 struct COMP_TYPE(Character) {
@@ -116,8 +86,6 @@ struct COMP_TYPE(Mesh) {
 	vec2 tiling;
 };
 
-#define COMP_CHILD_OFFSET 0x1
-
 struct COMP_TYPE(Child){
 	u8 flags;
 	u16 parent;
@@ -126,10 +94,6 @@ struct COMP_TYPE(Child){
 };
 
 // GUI
-
-#define COMP_GUI_PIXEL_POS 0x1
-#define COMP_GUI_PIXEL_SCALE 0x2
-#define COMP_GUI_PIXEL_ANCHOR 0x4
 
 struct COMP_TYPE(Gui) {
 	u8 flags;
@@ -145,10 +109,7 @@ struct COMP_TYPE(Text) { //
 	float fontSize;
 };
 
-// Audio
-
-#define SOUND_GEN 0x1
-#define SOUND_LOOP 0x2
+// AUDIO
 
 struct COMP_TYPE(Sound) {
 	u8 flags;
@@ -161,17 +122,3 @@ struct COMP_TYPE(Listener) {
 	u8 flags;
 	float volume, focus;
 };
-
-// Convenience Variables
-
-#define DECL_TYPE(a) struct COMP_TYPE(a);
-FOREACH_COMP(DECL_TYPE)
-
-#define DECL_ENUM(a) COMP_ENUM(a),
-enum { FOREACH_COMP(DECL_ENUM) COMP_COUNT };
-
-#define DECL_BIT(a) COMP_BIT(a) = 1<<COMP_ENUM(a),
-enum { FOREACH_COMP(DECL_BIT) };
-
-#define GET_SIZE(a) sizeof(a ## Comp),
-const u16 compSize[COMP_COUNT] = { FOREACH_COMP(GET_SIZE) };

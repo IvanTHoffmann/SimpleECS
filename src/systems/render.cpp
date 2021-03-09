@@ -135,7 +135,7 @@ void updateRenderSystem(CB_PARAMS) {
 	// DRAW GUI
 	shader = app->assetManager.getShader("ui");
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	glViewport(0, 0, appData->inputInfo.windowW, appData->inputInfo.windowH);
+	glViewport(0, 0, app->inputManager.windowW, app->inputManager.windowH);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glUseProgram(shader->id);
 	glPolygonMode(GL_FRONT, GL_FILL);
@@ -158,7 +158,7 @@ void updateRenderSystem(CB_PARAMS) {
 
 	vec3 s;
 	float percScale, percAnchor, percPos;
-	vec3 invWinSize = 1.0f / vec3(appData->inputInfo.windowW, appData->inputInfo.windowH, 1);
+	vec3 invWinSize = 1.0f / vec3(app->inputManager.windowW, app->inputManager.windowH, 1);
 
 	//
 #define SET_GUI_MATRIX \
@@ -204,7 +204,7 @@ void updateRenderSystem(CB_PARAMS) {
 
 	u16* p;
 	char c;
-	float charWidth, aspect = appData->inputInfo.windowH / (float)appData->inputInfo.windowW;
+	float charWidth, aspect = app->inputManager.windowH / (float)app->inputManager.windowW;
 
 	while (ent.next()) {
 		ent.copyText();

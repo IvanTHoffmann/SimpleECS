@@ -2,7 +2,6 @@
 
 
 void updateCharacterSystem(CB_PARAMS) {
-
 	Entity cam(app);
 	Entity player(app);
 	cam.setPrefab("camera");
@@ -19,7 +18,7 @@ void updateCharacterSystem(CB_PARAMS) {
 
 		while (cam.next()) {
 			cam.refInput();
-			if (cam.Input->controllerId == player.Input->controllerId) {
+			if (cam.Input->mask & player.Input->mask) {
 				cam.refTransform();
 				inputDir.y = 2 * (cam.Transform->rot.x * cam.Transform->rot.z + cam.Transform->rot.w * cam.Transform->rot.y);
 				inputDir.x = cam.Transform->rot.w * cam.Transform->rot.w -
@@ -33,7 +32,8 @@ void updateCharacterSystem(CB_PARAMS) {
 
 		player.Rigidbody->vel.y -= 20 * evnt->dt;
 
-		if (player.Transform->pos.y < 5) { // grounded
+
+		if (player.Transform->pos.y <= 5) { // grounded
 			player.Transform->pos.y = 5;
 			player.Rigidbody->vel.y = 0;
 
@@ -49,12 +49,9 @@ void updateCharacterSystem(CB_PARAMS) {
 			localAccel *= player.Character->speed;
 			player.Rigidbody->vel += localAccel * evnt->dt;
 
-			if (player.Input->triggers & INPUT_TRIGGER_JUMP) {
+			if (player.Input->button[BUTTON_A] == 3) {
 				player.Rigidbody->vel.y += 10;
 			}
-		}
-		else {
-			player.Input->triggers &= ~INPUT_TRIGGER_JUMP;
 		}
 
 		player.Transform->pos += player.Rigidbody->vel * evnt->dt;

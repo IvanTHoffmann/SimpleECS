@@ -66,8 +66,8 @@ void onInit(CB_PARAMS) {
 void onWindowInit(CB_PARAMS) {
 	AppData* appData = (AppData*)app->getData();
 
-	setCallbacks(appData->window, &appData->inputInfo);
-	glfwSetWindowSize(appData->window, appData->inputInfo.windowW, appData->inputInfo.windowH);
+	app->inputManager.setCallbacks(appData->window);
+	glfwSetWindowSize(appData->window, app->inputManager.windowW, app->inputManager.windowH);
 
 	app->eventManager.dispatch(&onUpdate);
 }

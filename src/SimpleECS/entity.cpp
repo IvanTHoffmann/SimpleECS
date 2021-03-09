@@ -1,7 +1,5 @@
 #include "SimpleECS/simpleECS.hpp"
 
-#include "compData.hpp"
-
 bool shouldSync(u8* reference, u8* copy) {
 	if (reference == copy) {
 		if (*copy & COMP_NO_SYNC) {

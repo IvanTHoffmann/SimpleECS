@@ -79,10 +79,10 @@ void updatePhysicsSystem(CB_PARAMS) {
 				if (body.Transform->pos.y < body.Transform->scale.y) {
 					// colliding with ground
 					body.Transform->pos.y = body.Transform->scale.y;
-					c0.Constraint->flags |= CONSTRAINT_ACTIVE;
+					c0.Constraint->flags |= COMP_CONSTRAINT_ACTIVE;
 				}
 				else {
-					c0.Constraint->flags &= ~CONSTRAINT_ACTIVE;
+					c0.Constraint->flags &= ~COMP_CONSTRAINT_ACTIVE;
 				}
 
 				body.syncTransform();
@@ -110,7 +110,7 @@ void updatePhysicsSystem(CB_PARAMS) {
 		while (c0.next()) { // solve friction and restitution
 			c0.refConstraint();
 
-			if (c0.Constraint->flags & CONSTRAINT_ACTIVE && IS_SHAPE(c0.Constraint->type)) {
+			if (c0.Constraint->flags & COMP_CONSTRAINT_ACTIVE && IS_SHAPE(c0.Constraint->type)) {
 				body.setGlobalIndex(c0.Constraint->body);
 
 				body.copyRigidbody();
@@ -119,7 +119,7 @@ void updatePhysicsSystem(CB_PARAMS) {
 				body.Rigidbody->vel.y = body.Rigidbody->lastVel.y;
 
 				body.syncRigidbody();
-				c0.Constraint->flags &= ~CONSTRAINT_ACTIVE;
+				c0.Constraint->flags &= ~COMP_CONSTRAINT_ACTIVE;
 			}
 		}
 	}

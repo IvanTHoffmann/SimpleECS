@@ -1,6 +1,7 @@
 #pragma once
 
 #include "SimpleECS/simpleECS.hpp"
+#include "constants.hpp"
 #include "portaudio.h"
 
 #define FRAMES_PER_BUFFER 220

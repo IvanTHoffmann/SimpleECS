@@ -1,4 +1,6 @@
 #include "systems/loader.hpp"
+#include "systems/physics.hpp"
+#include "constants.hpp"
 #include "appData.hpp"
 
 void initLoaderSystem(CB_PARAMS) {
@@ -34,7 +36,7 @@ void initLoaderSystem(CB_PARAMS) {
 	ent.Transform->scale = vec3(1, 1, 1);
 
 	ent.copySound();
-	ent.Sound->flags |= SOUND_LOOP;
+	ent.Sound->flags |= COMP_SOUND_LOOP;
 	ent.Sound->soundIndex = assets->getSoundIndex("music/AnotherOne");
 	ent.Sound->volume = .8f;
 	ent.Sound->sampleIndex = 0;
@@ -57,7 +59,7 @@ void initLoaderSystem(CB_PARAMS) {
 	ent.Transform->scale = vec3(.5);
 
 	ent.copySound();
-	ent.Sound->flags |= SOUND_LOOP;
+	ent.Sound->flags |= COMP_SOUND_LOOP;
 	ent.Sound->soundIndex = assets->getSoundIndex("music/SickBeat");
 	ent.Sound->volume = .8f;
 	ent.Sound->sampleIndex = 0;
@@ -81,7 +83,7 @@ void initLoaderSystem(CB_PARAMS) {
 	ent.Transform->scale = vec3(.5);
 
 	ent.copySound();
-	ent.Sound->flags |= SOUND_LOOP;
+	ent.Sound->flags |= COMP_SOUND_LOOP;
 	ent.Sound->soundIndex = assets->getSoundIndex("music/PlopXD");
 	ent.Sound->volume = .8f;
 	ent.Sound->sampleIndex = 0;
@@ -136,7 +138,7 @@ void initLoaderSystem(CB_PARAMS) {
 	for (int i = 0; i < 12; i++) {
 		ent.create("rigidbody");
 		ent.refTransform();
-		ent.Transform->pos = vec3(4 * (i + 1), 10 + (4*i), -20);
+		ent.Transform->pos = vec3(4 * (i + 1) - 20, 10 + (4*i), -20);
 		ent.Transform->rot = quat(1, 0, 0, 0);
 		ent.Transform->scale = vec3(2);
 		ent.refMesh();
@@ -197,7 +199,7 @@ void initLoaderSystem(CB_PARAMS) {
 	ent.refTransform();
 	ent.Transform->pos = vec3(0,5,0);
 	ent.refInput();
-	ent.Input->controllerId = 0;
+	ent.Input->mask = CONTROLLER_KEYBOARD | CONTROLLER_MOUSE | CONTROLLER_JOY0;
 	ent.Input->sensitivity = 60.0f / 225;
 	ent.refRigidbody();
 	ent.Rigidbody->vel = vec3();
@@ -223,7 +225,7 @@ void initLoaderSystem(CB_PARAMS) {
 	ent.Camera->fboId = assets->getFboIndex("fbo-split");
 	ent.Camera->fov = 60.0f * TO_RADS;
 	ent.refInput();
-	ent.Input->controllerId = -1;
+	ent.Input->mask = 0;
 	ent.refChild();
 	ent.Child->parent = -1;
 	ent.refListener();
@@ -245,7 +247,7 @@ void initLoaderSystem(CB_PARAMS) {
 	ent.Camera->fboId = assets->getFboIndex("fbo-default");
 	ent.Camera->fov = 60.0f * TO_RADS;
 	ent.refInput();
-	ent.Input->controllerId = 0;
+	ent.Input->mask = CONTROLLER_KEYBOARD | CONTROLLER_MOUSE | CONTROLLER_JOY0;
 	ent.Input->sensitivity = .002f;
 	ent.Input->deceleration = 0.1f;
 	ent.refChild();

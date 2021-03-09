@@ -4,6 +4,7 @@
 #include "SimpleECS/componentManager.hpp"
 #include "SimpleECS/eventManager.hpp"
 #include "SimpleECS/memoryManager.hpp"
+#include "SimpleECS/inputManager.hpp"
 
 
 class Application {
@@ -16,6 +17,7 @@ public:
 	ComponentManager componentManager;
 	EventManager eventManager;
 	MemoryManager memoryManager;
+	InputManager inputManager;
 	
 	Application(void* appData);
 	~Application();
@@ -44,5 +46,7 @@ AssetManager  - - - - - Loads and stores asset data to be retrieved by systems.
 						This could be stored in a singleton component or in AppData, but it's simpler to use it as a class.
 
 MemoryManager - - - - - Allocates and distributes pointers to memory. 
+
+InputManager  - - - - - Keeps track of keyboard, mouse, and joystick states
 
 */

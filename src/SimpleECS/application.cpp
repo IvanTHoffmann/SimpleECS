@@ -7,6 +7,7 @@ Application::Application(void* d) {
 	assetManager.setApp(this);
 	componentManager.setApp(this);
 	eventManager.setApp(this);
+	inputManager.setApp(this);
 }
 
 Application::~Application() {

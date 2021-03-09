@@ -41,7 +41,7 @@ static int paSoundCallback(
 			if (ent.Sound->sampleIndex > soundInfo->sampleCount / soundInfo->numChannels) { // finished playing sample
 				ent.Sound->sampleIndex = (soundInfo->sampleCount / soundInfo->numChannels) * (ent.Sound->speed < 0);
 				ent.Sound->subIndex = 0.0f;
-				if (!(ent.Sound->flags & SOUND_LOOP)) {
+				if (!(ent.Sound->flags & COMP_SOUND_LOOP)) {
 					ent.Sound->flags |= COMP_DISABLED;
 					break;
 				}
