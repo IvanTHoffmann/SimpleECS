@@ -17,15 +17,15 @@ void updateInputSystem(CB_PARAMS) {
 		app->eventManager.dispatch(&onStop);
 	}
 
-	if (app->inputManager.onButtonDown(1 << DEVICE_KEYBOARD, KEY_DELETE)) {
+	if (app->inputManager.onInputSignal(QUIT)) {
 		app->eventManager.dispatch(&onStop);
 	}
 
-	if (app->inputManager.onButtonDown(1 << DEVICE_KEYBOARD, KEY_ESCAPE)) { // move to ui system
+	if (app->inputManager.onInputSignal(FOCUS)) { // move to ui system
 		app->inputManager.windowState ^= WIN_MOUSE_LOCKED; // toggle mouse lock
 		app->inputManager.windowState |= WIN_MOUSE_JUMP;
-		app->inputManager.mouseDX = 0;
-		app->inputManager.mouseDY = 0;
+		app->inputManager.mouseInput[2] = 0;
+		app->inputManager.mouseInput[3] = 0;
 		// GLFW_CURSOR_DISABLED (locked) == GLFW_CURSOR_NORMAL (unlocked) + 2
 
 		if (app->inputManager.windowState & WIN_MOUSE_LOCKED) {

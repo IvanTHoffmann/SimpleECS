@@ -8,7 +8,6 @@
 
 #define FOREACH_COMP(f) \
 f(Character) \
-f(Input) \
 f(Camera) \
 f(Transform) \
 f(Child) \
@@ -56,12 +55,6 @@ struct COMP_TYPE(Transform) {
 
 // CONTROL
 
-struct COMP_TYPE(Input) {
-	u8 flags;
-	u16 HidMask;
-	float sensitivity, deceleration;
-};
-
 struct COMP_TYPE(Character) {
 	u8 flags;
 	float speed;
@@ -86,7 +79,7 @@ struct COMP_TYPE(Mesh) {
 
 struct COMP_TYPE(Child){
 	u8 flags;
-	u16 parent;
+	u32 parent;
 	vec3 offsetPos;
 	vec3 offsetRot;
 };

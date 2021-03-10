@@ -1,75 +1,103 @@
 #include "SimpleECS/inputManager.hpp"
 
 InputManager::InputManager() {
-	mouseX = 0;
-	mouseY = 0;
-	mouseDX = 0;
-	mouseDY = 0;
-	scrollX = 0;
-	scrollY = 0;
-	mouseLB = 0;
-	mouseRB = 0;
 	windowW = 0;
 	windowH = 0;
 	windowState = WIN_RESIZED | WIN_MOUSE_JUMP;
 
-	for (u8 i = 0; i < DEVICE_COUNT; i++) {
-		devices[i].axisCount = 0;
-		devices[i].buttonCount = 0;
-		devices[i].hatCount = 0;
+	for (u8 i = 0; i < NUM_BINDINGS; i++) {
+		actions[i].count = 0;
+		actions[i].changed = false;
+		actions[i].val = 0.0f;
 	}
 
-	devices[DEVICE_KEYBOARD].buttonCount = KEY_COUNT;
-	devices[DEVICE_KEYBOARD].buttons = keys;
+	for (u8 i = 0; i < KEY_COUNT; i++) {
+		keys[i] = 0;
+	}
 
-	devices[DEVICE_MOUSE].buttonCount = 8;
-	devices[DEVICE_MOUSE].buttons = mouseButtons;
-	devices[DEVICE_MOUSE].axisCount = 6;
-	devices[DEVICE_MOUSE].axes = mouseAxes;
+	for (u8 i = 0; i < MAX_MOUSE_INPUTS; i++) {
+		mouseInput[i] = 0;
+	}
+}
 
+
+bool InputManager::bindInput(u8 func, u8 deviceID, u8 inputID, float antideadzone, float deadzone, float multiplier, float minVal, float maxVal, bool mulDt) {
+	if (func >= NUM_BINDINGS) {
+		return false;
+	}
+	if (actions[func].count >= MAX_FUNC_BINDINGS) {
+		return false;
+	}
+	Binding* b = actions[func].bindings + (actions[func].count++);
+
+	b->deviceID = deviceID;
+	b->inputID = inputID;
+	b->antideadzone = antideadzone;
+	b->deadzone = deadzone;
+	b->multiplier = multiplier;
+	b->minVal = minVal;
+	b->maxVal = maxVal;
+	b->mulDt = mulDt;
+
+	b->val = 0.0f;
 }
 
 void InputManager::setApp(Application* _app) {
 	app = _app;
 }
 
-float InputManager::getAxis(u16 hidMask, u8 axisID) {
-	float value = 0;
-	for (u8 i = 0; i < DEVICE_COUNT; i++) {
-		if (hidMask & (1 << i) && axisID < devices[i].axisCount) {
-			value += devices[i].axes[axisID];
-		}
+float InputManager::getInput(u8 func, float dt) {
+	if (func >= NUM_BINDINGS) {
+		return 0.0f; // invalid function id
 	}
-	return value;
-}
-
-u8 InputManager::getButton(u16 hidMask, u8 buttonID) {
-	u8 value = 0;
-	for (u8 i = 0; i < DEVICE_COUNT; i++) {
-		if (hidMask & (1 << i) && buttonID < devices[i].buttonCount) {
-			value |= devices[i].buttons[buttonID];
-		}
+	
+	if (actions[func].tested) {
+		return actions[func].val; // The action's value has already been calculated this frame. return the stored value
 	}
-	return value;
-}
 
-u8 InputManager::onButtonDown(u16 hidMask, u8 buttonID) {
-	return getButton(hidMask, buttonID) == 3;
-}
+	// The function's value has not been calculated
 
-u8 InputManager::onButtonUp(u16 hidMask, u8 buttonID) {
-	return getButton(hidMask, buttonID) == 2;
-}
-
-u8 InputManager::getHat(u16 hidMask, u8 hatID) {
-	unsigned char value = 0;
-	for (u8 i = 0; i < DEVICE_COUNT; i++) {
-		if (hidMask & (1 << i) && hatID < devices[i].hatCount) {
-			value |= devices[i].hats[hatID];
+	float newVal=0, x;
+	Binding *b;
+	
+	for (u8 i = 0; i < actions[func].count; i++) { // loop over all bindings, calculate, and sum their values
+		b = actions[func].bindings + i;
+		x = b->val;
+		x += b->antideadzone * sign(x);
+		x = (x - b->deadzone * sign(x)) * (abs(x) > b->deadzone);
+		x *= b->multiplier;
+		x = CLAMP(x, b->minVal, b->maxVal);
+		if (b->mulDt) {
+			x *= dt;
 		}
+		newVal += x;
 	}
-	return value;
+
+	actions[func].changed = ((newVal == 0) != (actions[func].val == 0)); // The value changed between 0 and non-0 in the last frame.
+	actions[func].val = newVal;
+	actions[func].tested = true;
+	return newVal;
 }
+
+bool InputManager::onInputChanged(u8 func) {
+	if (func >= NUM_BINDINGS) {
+		return false; // invalid function id
+	}
+	getInput(func);
+	return actions[func].changed;
+}
+
+bool InputManager::onInputSignal(u8 func) {
+	return getInput(func) && actions[func].changed;
+}
+
+bool InputManager::onInputRelease(u8 func) {
+	if (func >= NUM_BINDINGS) {
+		return false; // invalid function id
+	}
+	return !getInput(func) && actions[func].changed;
+}
+
 
 void InputManager::setCallbacks(GLFWwindow* window) {
 	glfwSetWindowUserPointer(window, this);
@@ -104,28 +132,60 @@ void InputManager::setCallbacks(GLFWwindow* window) {
 void InputManager::update() { 
 	windowState &= ~WIN_RESIZED;
 
-	int axisCount, buttonCount, hatCount;
-	float *axes;
-	unsigned char i, *buttons, *hats;
-	InputDevice *device;
+	int inputCount;
+	float* axes;
+	unsigned char *buttons, *hats;
 
-	for (int inputID = 0; inputID < DEVICE_COUNT - 2; inputID++) {
-		device = devices + inputID;
+	Binding* b;
+	u8 inputID;
 
-		// TODO: Copy data to allocated array and add keydown/keyup flags
+	// loop over inputs and update binding values
+	for (u8 i = 0; i < NUM_BINDINGS; i++) {
+		for (u8 j = 0; j < actions[i].count; j++) {
+			b = actions[i].bindings + j;
+			switch (b->deviceID) {
+			case DEVICE_KEYBOARD:
+				if (b->inputID < KEY_COUNT) {
+					b->val = keys[b->inputID];
+				}
+				break;
+			case DEVICE_MOUSE:
+				// TODO: process mouse data
+				if (b->inputID < MAX_MOUSE_INPUTS) {
+					b->val = mouseInput[b->inputID];
+				}
 
-		device->axes = (float*)glfwGetJoystickAxes(inputID, &device->axisCount);
-		device->buttons = (u8*)glfwGetJoystickButtons(inputID, &device->buttonCount);
-		device->hats = (u8*)glfwGetJoystickHats(inputID, &device->hatCount);
+				break;
+			default:
+				if (b->deviceID < DEVICE_KEYBOARD) {
+					// joystick
+					inputID = b->inputID;
+					axes = (float*)glfwGetJoystickAxes(b->deviceID, &inputCount);
+					if (inputCount > inputID) {
+						b->val = axes[inputID];
+					}
+					inputID -= inputCount;
+					buttons = (u8*)glfwGetJoystickButtons(b->deviceID, &inputCount);
+					if (inputCount > inputID) {
+						b->val = buttons[inputID];
+					}
+					inputID -= inputCount;
+					hats = (u8*)glfwGetJoystickHats(b->deviceID, &inputCount); // consider processing hat data into 8 buttons
+					if (inputCount > inputID) {
+						b->val = hats[inputID];
+					}
+				}
+				break;
+			}
+		}
 	}
 
-	devices[DEVICE_MOUSE].axes[MOUSE_DX] = 0;
-	devices[DEVICE_MOUSE].axes[MOUSE_DY] = 0;
-	devices[DEVICE_MOUSE].axes[MOUSE_SCROLL_X] = 0;
-	devices[DEVICE_MOUSE].axes[MOUSE_SCROLL_Y] = 0;
+	for (u8 i = 2; i < 6; i++) { // clear mouse velocity and scrolling
+		mouseInput[i] = 0;
+	}
 
-	for (u8 keyCode = 0; keyCode < KEY_COUNT; keyCode++) {
-		devices[DEVICE_KEYBOARD].buttons[keyCode] &= 1;
+	for (u8 i = 0; i < NUM_BINDINGS; i++) {
+		actions[i].tested = false;
 	}
 
 	glfwPollEvents();
@@ -143,18 +203,18 @@ void onKey(GLFWwindow* window, int key, int scancode, int action, int mods) {
 	//printf("onKey: scancode: %d, key: %d, action: %d, mods: %d\n", scancode, key, action, mods);
 	if (action < 2 && ((GLFW_KEY_SPACE <= key && key <= GLFW_KEY_GRAVE_ACCENT) || (GLFW_KEY_ESCAPE <= key && key <= GLFW_KEY_MENU))) {
 		u8 keyCode = key & GLFW_KEY_ESCAPE ? key - GLFW_KEY_ESCAPE + 64 : key - GLFW_KEY_SPACE;
-		inp->devices[DEVICE_KEYBOARD].buttons[keyCode] = action + KEY_CHANGED;
-		cout << "key pressed: " << (int)inp->devices[DEVICE_KEYBOARD].buttons[keyCode] << " (" << (int)keyCode << ")\n";
+		inp->keys[keyCode] = action;
+		cout << "key pressed: " << (int)inp->keys[keyCode] << " (" << (int)keyCode << ")\n";
 	}
 }
 
 void onCursorPos(GLFWwindow* window, double x, double y) {
 	InputManager* inp = (InputManager*)glfwGetWindowUserPointer(window);
-	inp->devices[DEVICE_MOUSE].axes[2] = (x - inp->devices[DEVICE_MOUSE].axes[0]) * !(inp->windowState & WIN_MOUSE_JUMP);
-	inp->devices[DEVICE_MOUSE].axes[3] = (y - inp->devices[DEVICE_MOUSE].axes[1]) * !(inp->windowState & WIN_MOUSE_JUMP);
+	inp->mouseInput[2] = (x - inp->mouseInput[0]) * !(inp->windowState & WIN_MOUSE_JUMP);
+	inp->mouseInput[3] = (y - inp->mouseInput[1]) * !(inp->windowState & WIN_MOUSE_JUMP);
 	inp->windowState &= ~WIN_MOUSE_JUMP;
-	inp->devices[DEVICE_MOUSE].axes[0] = x;
-	inp->devices[DEVICE_MOUSE].axes[1] = y;
+	inp->mouseInput[0] = x;
+	inp->mouseInput[1] = y;
 }
 
 void onCursorEnter(GLFWwindow* window, int entered) {
@@ -166,13 +226,16 @@ void onCursorEnter(GLFWwindow* window, int entered) {
 
 void onMouseButton(GLFWwindow* window, int button, int action, int mods) {
 	InputManager* inp = (InputManager*)glfwGetWindowUserPointer(window);
-	updateKey(inp->devices[DEVICE_MOUSE].buttons[button], action);
+	u8 inputID = NUM_MOUSE_AXES + button;
+	if (inputID < MAX_MOUSE_INPUTS) {
+		inp->mouseInput[inputID] = action;
+	}
 }
 
 void onScroll(GLFWwindow* window, double x, double y) {
 	InputManager* inp = (InputManager*)glfwGetWindowUserPointer(window);
-	inp->devices[DEVICE_MOUSE].axes[MOUSE_SCROLL_X] = x;
-	inp->devices[DEVICE_MOUSE].axes[MOUSE_SCROLL_Y] = y;
+	inp->mouseInput[4] = x;
+	inp->mouseInput[5] = y;
 	printf("scroll: (%f, %f)\n", x, y);
 }
 

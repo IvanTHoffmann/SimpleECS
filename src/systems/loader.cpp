@@ -10,12 +10,46 @@ void initLoaderSystem(CB_PARAMS) {
 	AssetManager* assets = &app->assetManager;
 	ComponentManager* comps = &app->componentManager;
 
-	// register classes
+	InputManager* inp = &app->inputManager;
+	// set key bindings
+	inp->bindInput(MOVE_LEFT, DEVICE_KEYBOARD, KEY_A);
+	inp->bindInput(MOVE_RIGHT, DEVICE_KEYBOARD, KEY_D);
+	inp->bindInput(MOVE_FORWARD, DEVICE_KEYBOARD, KEY_W);
+	inp->bindInput(MOVE_BACKWARD, DEVICE_KEYBOARD, KEY_S);
+	float mouseSensitivity = .003f;
+	inp->bindInput(LOOK_LEFT, DEVICE_MOUSE, 2, 0.0f, 0.0f, -mouseSensitivity, 0.0f, INFINITY);
+	inp->bindInput(LOOK_RIGHT, DEVICE_MOUSE, 2, 0.0f, 0.0f, mouseSensitivity, 0.0f, INFINITY);
+	inp->bindInput(LOOK_UP, DEVICE_MOUSE, 3, 0.0f, 0.0f, mouseSensitivity, 0.0f, INFINITY);
+	inp->bindInput(LOOK_DOWN, DEVICE_MOUSE, 3, 0.0f, 0.0f, -mouseSensitivity, 0.0f, INFINITY);
 
-	comps->addPrefab("misc", 5, CharacterBit | InputBit | TransformBit | MeshBit | ChildBit);
-	comps->addPrefab("player", 1, CharacterBit | InputBit | TransformBit | RigidbodyBit);
+	inp->bindInput(JUMP, DEVICE_KEYBOARD, KEY_SPACE);
+	inp->bindInput(FOCUS, DEVICE_KEYBOARD, KEY_ESCAPE);
+	inp->bindInput(QUIT, DEVICE_KEYBOARD, KEY_DELETE);
+
+	float moveSensitivity = 1.25f;
+	inp->bindInput(MOVE_LEFT, 0, 0, 0.0f, .2f, -moveSensitivity, 0.0f);
+	inp->bindInput(MOVE_RIGHT, 0, 0, 0.0f, .2f, moveSensitivity, 0.0f);
+	inp->bindInput(MOVE_FORWARD, 0, 1, 0.0f, .2f, -moveSensitivity, 0.0f);
+	inp->bindInput(MOVE_BACKWARD, 0, 1, 0.0f, .2f, moveSensitivity, 0.0f);
+	inp->bindInput(MOVE_LEFT, 0, 6 + 13, 0.0f, .2f, 1, 0.0f);
+	inp->bindInput(MOVE_RIGHT, 0, 6 + 11, 0.0f, .2f, 1, 0.0f);
+	inp->bindInput(MOVE_FORWARD, 0, 6 + 10, 0.0f, .2f, 1, 0.0f);
+	inp->bindInput(MOVE_BACKWARD, 0, 6 + 12, 0.0f, .2f, 1, 0.0f);
+	float gpSensitivity = 5.0f;
+	inp->bindInput(LOOK_LEFT, 0, 2, 0.0f, .2f, -gpSensitivity, 0.0f, INFINITY, true);
+	inp->bindInput(LOOK_RIGHT, 0, 2, 0.0f, .2f, gpSensitivity, 0.0f, INFINITY, true);
+	inp->bindInput(LOOK_UP, 0, 3, 0.0f, .2f, gpSensitivity, 0.0f, INFINITY, true);
+	inp->bindInput(LOOK_DOWN, 0, 3, 0.0f, .2f, -gpSensitivity, 0.0f, INFINITY, true);
+
+	inp->bindInput(JUMP, 0, 6 + 0); // jump with A
+	inp->bindInput(FOCUS, 0, 6 + 6); // focus mouse to screen with SELECT
+	inp->bindInput(QUIT, 0, 6 + 7); // force quit with START
+
+	// register prefabs
+	comps->addPrefab("misc", 5, CharacterBit | TransformBit | MeshBit | ChildBit);
+	comps->addPrefab("player", 1, CharacterBit | TransformBit | RigidbodyBit);
 	comps->addPrefab("model", 10, TransformBit | MeshBit, PREFAB_MEM_PACK);
-	comps->addPrefab("camera", 2, CameraBit | InputBit | TransformBit | ChildBit | ListenerBit | MeshBit);
+	comps->addPrefab("camera", 2, CameraBit | TransformBit | ChildBit | ListenerBit | MeshBit);
 	comps->addPrefab("text", 3, TextBit | GuiBit | TransformBit);
 	comps->addPrefab("gui", 5, MeshBit | GuiBit | TransformBit);
 	comps->addPrefab("rigidbody", 20, MeshBit | TransformBit | RigidbodyBit);
@@ -198,9 +232,6 @@ void initLoaderSystem(CB_PARAMS) {
 	
 	ent.refTransform();
 	ent.Transform->pos = vec3(0,5,0);
-	ent.refInput();
-	ent.Input->HidMask = 0xffff ^ (1 << DEVICE_MOUSE);
-	ent.Input->sensitivity = .1;
 	ent.refRigidbody();
 	ent.Rigidbody->vel = vec3();
 	ent.Rigidbody->invMass = 0;
@@ -224,10 +255,8 @@ void initLoaderSystem(CB_PARAMS) {
 	ent.refCamera();
 	ent.Camera->fboId = assets->getFboIndex("fbo-split");
 	ent.Camera->fov = 60.0f * TO_RADS;
-	ent.refInput();
-	ent.Input->HidMask = 0;
 	ent.refChild();
-	ent.Child->parent = -1;
+	ent.Child->parent = INVALID_INDEX;
 	ent.refListener();
 	ent.Listener->volume = 0.0f;
 	ent.Listener->focus = .3f;
@@ -246,10 +275,6 @@ void initLoaderSystem(CB_PARAMS) {
 	ent.refCamera();
 	ent.Camera->fboId = assets->getFboIndex("fbo-default");
 	ent.Camera->fov = 60.0f * TO_RADS;
-	ent.refInput();
-	ent.Input->HidMask = 0xffff;
-	ent.Input->sensitivity = .002f;
-	ent.Input->deceleration = 0.1f;
 	ent.refChild();
 	ent.Child->parent = playerIndex;
 	ent.Child->offsetRot = {0, 0, 0};

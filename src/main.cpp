@@ -8,10 +8,15 @@
 /* TODO main
 
 Clean up engine code. Check for obsolete variables and places to optimize.
+Use more run-time variables instead of compile-time
+
+NETWORKING
+-add a network manager
 
 INPUT
--allocate memory for axes, buttons, and hats when a new joystick is detected. glfw doesnt keep track of whether or not a button was just pressed, so I cant use their buffer.
--add inputManager method for getting the value according to the function of the input ( ex. getInput(playerId, JUMP) )
+-finish renaming "input function" to "action"
+-add human readable names for inputs (add it as an enum to start)
+-add InputManager.unbindInput(action)
 -read input bindings from a file
 
 RENDER
@@ -26,7 +31,7 @@ Audio
 -Support changing audio devices at runtime
 
 Memory
--Reserve a memory pool for permanent memory that can be 
+-Reserve a memory pool for engine configuration
 -Allocate temporary memory for event data. Possibly just an array of chars in AppData where the oldest data is overwritten.
 
 Crash Prevention

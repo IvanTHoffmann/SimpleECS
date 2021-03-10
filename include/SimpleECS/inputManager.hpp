@@ -4,10 +4,6 @@
 #include "SimpleECS/util.hpp"
 
 #define KEY_COUNT 131
-#define KEY_PRESSED 0b01
-#define KEY_CHANGED 0b10
-
-#define updateKey(key, state) (key = ((key&1) != state) << 1 | state)
 
 enum WindowStates {
 	WIN_MOUSE_LOCKED = 0x1,
@@ -21,25 +17,62 @@ struct InputDevice {
 	int axisCount, buttonCount, hatCount;
 };
 
-#define DEVICE_KEYBOARD 14
-#define DEVICE_MOUSE 15
-#define DEVICE_COUNT 16
+#define DEVICE_KEYBOARD 16
+#define DEVICE_MOUSE 17
+#define NUM_MOUSE_AXES 6
+#define MAX_MOUSE_INPUTS (NUM_MOUSE_AXES + 20)
+
+enum {
+	MOVE_LEFT,
+	MOVE_RIGHT,
+	MOVE_FORWARD,
+	MOVE_BACKWARD,
+	LOOK_LEFT,
+	LOOK_RIGHT,
+	LOOK_UP,
+	LOOK_DOWN,
+	JUMP,
+	QUIT,
+	FOCUS,
+
+	NUM_BINDINGS,
+};
+
+#define INPUT_AXIS 0
+#define INPUT_BUTTON 1
+#define INPUT_HAT 2
+
+struct Binding {
+	u8 deviceID; // 0-15 gamepad // 16 keyboard // 17 mouse
+	u8 inputID; // the index in list of inputs available for the device
+	float val; // the raw input value from GLFW
+	// filters are applied in the order shown
+	float antideadzone; // x += antideadzone * sign(x)
+	float deadzone; // x = (x - deadzone * sign(x)) * (abs(x) > deadzone)
+	float multiplier; // x *= multiplier
+	float minVal, maxVal; // x = CLAMP(x, minVal, maxVal)
+	bool mulDt; // multiply this value by dt
+};
+
+#define MAX_FUNC_BINDINGS 3 // Each action can only have MAX_FUNC_BINDINGS inputs bound to it
+
+struct Action {
+	u8 count;
+	bool tested; // true if the value has been tested during the current frame. Used to remove redundantly calculating input
+	bool changed; // tells if the value changed between 0 and non-0 since the last frame.
+	float val; // the last calculated value
+	Binding bindings[MAX_FUNC_BINDINGS];
+};
 
 class InputManager {
 public:
 	Application* app;
 	u8 windowState;
 	int windowW, windowH;
-
-	double mouseX, mouseY;
-	float mouseDX, mouseDY;
-	float scrollX, scrollY;
-	u8 mouseLB, mouseRB;
+	float mouseInput[MAX_MOUSE_INPUTS];
 	u8 keys[KEY_COUNT];
-	float mouseAxes[6];
-	u8 mouseButtons[8];
 
-	InputDevice devices[DEVICE_COUNT]; // 14 gamepads + mouse + keyboard
+	Action actions[NUM_BINDINGS];
 
 	InputManager();
 	//~InputManager();
@@ -47,11 +80,13 @@ public:
 
 	void update();
 
-	float getAxis(u16 hidMask, u8 axisID);
-	u8 getButton(u16 hidMask, u8 buttonID);
-	u8 onButtonDown(u16 hidMask, u8 buttonID);
-	u8 onButtonUp(u16 hidMask, u8 buttonID);
-	u8 getHat(u16 hidMask, u8 hatID);
+	float getInput(u8 inputFunc, float dt = 1.0f);
+	bool onInputSignal(u8 inputFunc);
+	bool onInputRelease(u8 inputFunc);
+	bool onInputChanged(u8 inputFunc);
+
+	bool bindInput(u8 func, u8 deviceID, u8 inputID, float antideadzone = 0.0f, float deadzone = 0.0f, 
+		float multiplier = 1.0f, float minVal = -INFINITY, float maxVal = INFINITY, bool mulDt=false);
 
 	void setCallbacks(GLFWwindow* window);
 
@@ -209,13 +244,6 @@ enum {
 enum {MOUSE_X, MOUSE_Y, MOUSE_DX, MOUSE_DY, MOUSE_SCROLL_X, MOUSE_SCROLL_Y};
 
 enum {AXIS_LH, AXIS_LV, AXIS_RH, AXIS_RV, AXIS_LT, AXIS_RT};
-
-#define CONTROLLER_KEYBOARD 0b00000001
-#define CONTROLLER_MOUSE	0b00000010
-#define CONTROLLER_JOY0		0b00000100
-#define CONTROLLER_JOY1		0b00001000
-#define CONTROLLER_JOY2		0b00010000
-#define CONTROLLER_JOY3		0b00100000
 
 #define HAT_N 0b0001
 #define HAT_E 0b0010
