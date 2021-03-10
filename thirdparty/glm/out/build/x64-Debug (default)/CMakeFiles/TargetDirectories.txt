@@ -1,2 +1,0 @@
-D:/_personal/C++/SimpleECS/thirdparty/glm/out/build/x64-Debug (default)/CMakeFiles/edit_cache.dir
-D:/_personal/C++/SimpleECS/thirdparty/glm/out/build/x64-Debug (default)/CMakeFiles/rebuild_cache.dir
