@@ -21,9 +21,6 @@
 #define TIME_DIFF(begin, end) (std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin))
 
 #define TO_RADS 0.017453292519943295f
-#define MIN(a, b) ((a) < (b) ? (a) : (b))
-#define MAX(a, b) ((a) > (b) ? (a) : (b))
-#define CLAMP(v, l, h) MIN(h, MAX(l, v))
 #define setMatrix(loc, m) glUniformMatrix4fv((loc), 1, GL_FALSE, value_ptr(m))
 
 #define printVec3(v) printf(#v ": (%f, %f, %f)\n", (v).x, (v).y, (v).z)
@@ -50,7 +47,6 @@ public:
 };
 
 #define PRINT_VAR(v, t) printf(#v ": %" #t "\n", v);
-#define SIGN(v) ((v) >= 0 - (v) <= 0)
 
 #define MOD1(f) ((f) - (int)(f))
 #define LERP(a, b, l) ((a) * (l) + (b) * (1 - (l)))

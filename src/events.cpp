@@ -74,7 +74,7 @@ void onWindowInit(CB_PARAMS) {
 
 void onUpdate(CB_PARAMS) {
 	AppData* appData = (AppData*)app->getData();
-	evnt->dt = MIN(evnt->dt, appData->maxDt);
+	evnt->dt = min(evnt->dt, appData->maxDt);
 
 	updateUISystem(CB_ARGS);
 	updateRenderSystem(CB_ARGS);

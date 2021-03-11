@@ -17,10 +17,10 @@ void updateCameraSystem(CB_PARAMS) {
 		float dy = app->inputManager.getInput(LOOK_UP, evnt->dt) - app->inputManager.getInput(LOOK_DOWN, evnt->dt);
 
 		camera.Child->offsetRot += vec3(dx, dy, 0);
-		camera.Child->offsetRot.y = CLAMP(camera.Child->offsetRot.y, -1, 1);
+		camera.Child->offsetRot.y = clamp(camera.Child->offsetRot.y, -1.0f, 1.0f);
 
-		rot = angleAxis(camera.Child->offsetRot.y, vec3(1, 0, 0));
-		rot *= angleAxis(camera.Child->offsetRot.x, vec3(0, 1, 0));
+		rot = angleAxis(-camera.Child->offsetRot.x, vec3(0, 1, 0));
+		rot *= angleAxis(-camera.Child->offsetRot.y, vec3(1, 0, 0));
 		rot = normalize(rot);
 
 		//child.offsetRot += angleAxis(input.x * evnt->dt, vec3(0, 1, 0)) + angleAxis(input.y * evnt->dt, vec3(1, 0, 0));

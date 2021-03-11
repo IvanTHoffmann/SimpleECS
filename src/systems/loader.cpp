@@ -12,38 +12,39 @@ void initLoaderSystem(CB_PARAMS) {
 
 	InputManager* inp = &app->inputManager;
 	// set key bindings
-	inp->bindInput(MOVE_LEFT, DEVICE_KEYBOARD, KEY_A);
-	inp->bindInput(MOVE_RIGHT, DEVICE_KEYBOARD, KEY_D);
-	inp->bindInput(MOVE_FORWARD, DEVICE_KEYBOARD, KEY_W);
-	inp->bindInput(MOVE_BACKWARD, DEVICE_KEYBOARD, KEY_S);
+	inp->bindInput(MOVE_FORWARD,	DEVICE_KEYBOARD, KEY_W);
+	inp->bindInput(MOVE_LEFT,		DEVICE_KEYBOARD, KEY_A);
+	inp->bindInput(MOVE_BACKWARD,	DEVICE_KEYBOARD, KEY_S);
+	inp->bindInput(MOVE_RIGHT,		DEVICE_KEYBOARD, KEY_D);
 	float mouseSensitivity = .003f;
-	inp->bindInput(LOOK_LEFT, DEVICE_MOUSE, 2, 0.0f, 0.0f, -mouseSensitivity, 0.0f, INFINITY);
-	inp->bindInput(LOOK_RIGHT, DEVICE_MOUSE, 2, 0.0f, 0.0f, mouseSensitivity, 0.0f, INFINITY);
-	inp->bindInput(LOOK_UP, DEVICE_MOUSE, 3, 0.0f, 0.0f, mouseSensitivity, 0.0f, INFINITY);
-	inp->bindInput(LOOK_DOWN, DEVICE_MOUSE, 3, 0.0f, 0.0f, -mouseSensitivity, 0.0f, INFINITY);
+	inp->bindInput(LOOK_LEFT,	DEVICE_MOUSE, 2, 0.0f, -1.0f, mouseSensitivity);
+	inp->bindInput(LOOK_RIGHT,	DEVICE_MOUSE, 2, 0.0f, 1.0f, mouseSensitivity);
+	inp->bindInput(LOOK_UP,		DEVICE_MOUSE, 3, 0.0f, 1.0f, mouseSensitivity);
+	inp->bindInput(LOOK_DOWN,	DEVICE_MOUSE, 3, 0.0f, -1.0f, mouseSensitivity);
 
-	inp->bindInput(JUMP, DEVICE_KEYBOARD, KEY_SPACE);
-	inp->bindInput(FOCUS, DEVICE_KEYBOARD, KEY_ESCAPE);
-	inp->bindInput(QUIT, DEVICE_KEYBOARD, KEY_DELETE);
+	inp->bindInput(JUMP,	DEVICE_KEYBOARD, KEY_SPACE);
+	inp->bindInput(FOCUS,	DEVICE_KEYBOARD, KEY_ESCAPE);
+	inp->bindInput(QUIT,	DEVICE_KEYBOARD, KEY_DELETE);
 
 	float moveSensitivity = 1.25f;
-	inp->bindInput(MOVE_LEFT, 0, 0, 0.0f, .2f, -moveSensitivity, 0.0f);
-	inp->bindInput(MOVE_RIGHT, 0, 0, 0.0f, .2f, moveSensitivity, 0.0f);
-	inp->bindInput(MOVE_FORWARD, 0, 1, 0.0f, .2f, -moveSensitivity, 0.0f);
-	inp->bindInput(MOVE_BACKWARD, 0, 1, 0.0f, .2f, moveSensitivity, 0.0f);
-	inp->bindInput(MOVE_LEFT, 0, 6 + 13, 0.0f, .2f, 1, 0.0f);
-	inp->bindInput(MOVE_RIGHT, 0, 6 + 11, 0.0f, .2f, 1, 0.0f);
-	inp->bindInput(MOVE_FORWARD, 0, 6 + 10, 0.0f, .2f, 1, 0.0f);
-	inp->bindInput(MOVE_BACKWARD, 0, 6 + 12, 0.0f, .2f, 1, 0.0f);
+	float deadzone = .2f;
+	inp->bindInput(MOVE_FORWARD,	0, AXIS_LY, deadzone, -1.0f, moveSensitivity);
+	inp->bindInput(MOVE_LEFT,		0, AXIS_LX, deadzone, -1.0f, moveSensitivity);
+	inp->bindInput(MOVE_BACKWARD,	0, AXIS_LY, deadzone,  1.0f, moveSensitivity);
+	inp->bindInput(MOVE_RIGHT,		0, AXIS_LX, deadzone,  1.0f, moveSensitivity);
+	inp->bindInput(MOVE_FORWARD,	0, BUTTON_UP);
+	inp->bindInput(MOVE_LEFT,		0, BUTTON_LEFT);
+	inp->bindInput(MOVE_BACKWARD,	0, BUTTON_DOWN);
+	inp->bindInput(MOVE_RIGHT,		0, BUTTON_RIGHT);
 	float gpSensitivity = 5.0f;
-	inp->bindInput(LOOK_LEFT, 0, 2, 0.0f, .2f, -gpSensitivity, 0.0f, INFINITY, true);
-	inp->bindInput(LOOK_RIGHT, 0, 2, 0.0f, .2f, gpSensitivity, 0.0f, INFINITY, true);
-	inp->bindInput(LOOK_UP, 0, 3, 0.0f, .2f, gpSensitivity, 0.0f, INFINITY, true);
-	inp->bindInput(LOOK_DOWN, 0, 3, 0.0f, .2f, -gpSensitivity, 0.0f, INFINITY, true);
+	inp->bindInput(LOOK_UP,		0, AXIS_RY, deadzone,  1.0f, gpSensitivity,  true);
+	inp->bindInput(LOOK_LEFT,	0, AXIS_RX, deadzone, -1.0f, gpSensitivity, true);
+	inp->bindInput(LOOK_DOWN,	0, AXIS_RY, deadzone, -1.0f, gpSensitivity, true);
+	inp->bindInput(LOOK_RIGHT,	0, AXIS_RX, deadzone,  1.0f, gpSensitivity,  true);
 
-	inp->bindInput(JUMP, 0, 6 + 0); // jump with A
-	inp->bindInput(FOCUS, 0, 6 + 6); // focus mouse to screen with SELECT
-	inp->bindInput(QUIT, 0, 6 + 7); // force quit with START
+	inp->bindInput(JUMP,	0, BUTTON_A);
+	inp->bindInput(FOCUS,	0, BUTTON_SELECT);
+	inp->bindInput(QUIT,	0, BUTTON_START);
 
 	// register prefabs
 	comps->addPrefab("misc", 5, CharacterBit | TransformBit | MeshBit | ChildBit);
@@ -80,8 +81,8 @@ void initLoaderSystem(CB_PARAMS) {
 	ent.syncSound();
 
 	ent.copyMesh();
-	ent.Mesh->meshId = assets->getModelIndex("sphere");
-	ent.Mesh->diffuseId = assets->getTextureIndex("cobble/diffuse");
+	ent.Mesh->meshId = assets->getModelIndex("jukebox");
+	ent.Mesh->diffuseId = assets->getTextureIndex("jukebox");
 	ent.Mesh->tiling = vec2(1);
 	ent.syncMesh();
 
@@ -103,8 +104,8 @@ void initLoaderSystem(CB_PARAMS) {
 	ent.syncSound();
 
 	ent.copyMesh();
-	ent.Mesh->meshId = assets->getModelIndex("sphere");
-	ent.Mesh->diffuseId = assets->getTextureIndex("crate");
+	ent.Mesh->meshId = assets->getModelIndex("jukebox");
+	ent.Mesh->diffuseId = assets->getTextureIndex("jukebox");
 	ent.Mesh->normalId = -1;
 	ent.Mesh->specularId = -1;
 	ent.Mesh->tiling = vec2(1);
@@ -127,8 +128,8 @@ void initLoaderSystem(CB_PARAMS) {
 	ent.syncSound();
 
 	ent.copyMesh();
-	ent.Mesh->meshId = assets->getModelIndex("sphere");
-	ent.Mesh->diffuseId = assets->getTextureIndex("crate");
+	ent.Mesh->meshId = assets->getModelIndex("jukebox");
+	ent.Mesh->diffuseId = assets->getTextureIndex("jukebox");
 	ent.Mesh->normalId = -1;
 	ent.Mesh->specularId = -1;
 	ent.Mesh->tiling = vec2(1);
@@ -174,13 +175,14 @@ void initLoaderSystem(CB_PARAMS) {
 		ent.refTransform();
 		ent.Transform->pos = vec3(4 * (i + 1) - 20, 10 + (4*i), -20);
 		ent.Transform->rot = quat(1, 0, 0, 0);
-		ent.Transform->scale = vec3(2);
-		ent.refMesh();
-		ent.Mesh->meshId = assets->getModelIndex("sphere");
+		ent.Transform->scale = vec3(4);
+		ent.copyMesh();
+		ent.Mesh->meshId = assets->getModelIndex("crate");
 		ent.Mesh->diffuseId = assets->getTextureIndex("crate");
 		ent.Mesh->normalId = INVALID_INDEX;
 		ent.Mesh->specularId = INVALID_INDEX;
 		ent.Mesh->tiling = vec2(1);
+		ent.syncMesh();
 		ent.refRigidbody();
 		ent.Rigidbody->invMass = 1;
 
@@ -228,7 +230,7 @@ void initLoaderSystem(CB_PARAMS) {
 	// Player
 	ent.create("player");
 	ent.refCharacter();
-	ent.Character->speed = 100;
+	ent.Character->speed = 250;
 	
 	ent.refTransform();
 	ent.Transform->pos = vec3(0,5,0);
@@ -242,15 +244,15 @@ void initLoaderSystem(CB_PARAMS) {
 	// Camera 2
 	ent.create("camera");
 	ent.copyMesh();
-	ent.Mesh->meshId = assets->getModelIndex("sphere");
-	ent.Mesh->diffuseId = assets->getTextureIndex("cobble");
+	ent.Mesh->meshId = assets->getModelIndex("monkey");
+	ent.Mesh->diffuseId = assets->getTextureIndex("monkey");
 	ent.Mesh->normalId = -1;
 	ent.Mesh->specularId = -1;
 	ent.Mesh->tiling = vec2(1);
 	ent.syncMesh();
 	ent.refTransform();
-	ent.Transform->pos = vec3(8, 8, 0);
-	ent.Transform->rot = rotate(rotate(rotate(quat(0, 0, 0, 1), 180/57.3f, vec3(0, 0, 1)), 45/57.3f, vec3(1, 0, 0)), -45/57.3f, vec3(0, 1, 0));
+	ent.Transform->pos = vec3(8, 5, 0);
+	ent.Transform->rot = angleAxis(0.0f, vec3(1, 0, 0)) * angleAxis(.4f, vec3(0, 1, 0)) * angleAxis(0.0f, vec3(0, 0, 1));
 	ent.Transform->scale = vec3(1);
 	ent.refCamera();
 	ent.Camera->fboId = assets->getFboIndex("fbo-split");
@@ -264,14 +266,14 @@ void initLoaderSystem(CB_PARAMS) {
 	// Camera
 	ent.create("camera");
 	ent.copyMesh();
-	ent.Mesh->meshId = assets->getModelIndex("sphere");
-	ent.Mesh->diffuseId = assets->getTextureIndex("cobble");
+	ent.Mesh->meshId = assets->getModelIndex("monkey");
+	ent.Mesh->diffuseId = assets->getTextureIndex("monkey");
 	ent.Mesh->normalId = -1;
 	ent.Mesh->specularId = -1;
 	ent.Mesh->tiling = vec2(1);
 	ent.syncMesh();
 	ent.refTransform();
-	ent.Transform->scale = vec3(1);
+	ent.Transform->scale = vec3(1, 1, 1);
 	ent.refCamera();
 	ent.Camera->fboId = assets->getFboIndex("fbo-default");
 	ent.Camera->fov = 60.0f * TO_RADS;
@@ -315,12 +317,12 @@ void initLoaderSystem(CB_PARAMS) {
 	ent.syncMesh();
 	ent.refGui();
 	ent.Gui->flags |= COMP_GUI_PIXEL_SCALE;
-	ent.Gui->color = vec4(.8, .8, .8, 1);
+	ent.Gui->color = vec4(1);
 	ent.Gui->anchor = vec3(1.1, 1.15, 0);
 	ent.refTransform();
 	ent.Transform->flags = 0;
 	ent.Transform->pos = vec3(1, 1, .8);
-	ent.Transform->scale = vec3(300, 300, 1);
+	ent.Transform->scale = vec3(500, 500, 1);
 
 	// GLFWmonitor* monitor = glfwGetWindowMonitor(appData->window);
 	GLFWmonitor* monitor = glfwGetPrimaryMonitor();

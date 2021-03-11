@@ -17,7 +17,7 @@ struct AudioInfo {
 
 struct AppData {
 	u8 flags;
-	int maxDt;
+	float maxDt;
 	GLFWwindow* window;
 	PhysicsInfo physicsInfo;
 	AudioInfo audioInfo;

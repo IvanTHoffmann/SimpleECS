@@ -8,30 +8,34 @@
 /* TODO main
 
 Clean up engine code. Check for obsolete variables and places to optimize.
+Pack structs more efficiently
 Use more run-time variables instead of compile-time
 
 NETWORKING
 -add a network manager
 
 INPUT
--finish renaming "input function" to "action"
--add human readable names for inputs (add it as an enum to start)
+-Consider changing Binding variables back to booleans rather than using a single byte. Packing appears to be the same.
+-add human readable names for mouse inputs (add it as an enum to start)
 -add InputManager.unbindInput(action)
 -read input bindings from a file
 
 RENDER
--Fix the camera rotation. The attached model rotates in the opposite direction.
+-add proper normal and specular maps
 
 GUI
+-Write a basic menu interface
 -Write a function to convert inches to pixels
 
 Audio
--Fix incorrect behaviour when using multiple audio listeners (possibly just add a limiter and/or some compression)
+-Fix incorrect behavior when using multiple audio listeners (possibly just add a limiter and/or some compression)
 -Add sound generation to the audio system
 -Support changing audio devices at runtime
 
 Memory
--Reserve a memory pool for engine configuration
+-The program crashes when a new texture or model is added, then subsequent runs work fine...
+-Fix the necessity to copy/sync components that require allocating memory
+-Reserve seperate memory pools for engine configuration, assets, and components
 -Allocate temporary memory for event data. Possibly just an array of chars in AppData where the oldest data is overwritten.
 
 Crash Prevention

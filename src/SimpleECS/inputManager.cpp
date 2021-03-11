@@ -5,9 +5,8 @@ InputManager::InputManager() {
 	windowH = 0;
 	windowState = WIN_RESIZED | WIN_MOUSE_JUMP;
 
-	for (u8 i = 0; i < NUM_BINDINGS; i++) {
-		actions[i].count = 0;
-		actions[i].changed = false;
+	for (u8 i = 0; i < NUM_ACTIONS; i++) {
+		actions[i].countAndFlags = 0;
 		actions[i].val = 0.0f;
 	}
 
@@ -21,22 +20,21 @@ InputManager::InputManager() {
 }
 
 
-bool InputManager::bindInput(u8 func, u8 deviceID, u8 inputID, float antideadzone, float deadzone, float multiplier, float minVal, float maxVal, bool mulDt) {
-	if (func >= NUM_BINDINGS) {
+bool InputManager::bindInput(u8 action, u8 deviceID, u8 inputID, float deadzone, float inMul, float outMul, bool mulDt) {
+	if (action >= NUM_ACTIONS) {
 		return false;
 	}
-	if (actions[func].count >= MAX_FUNC_BINDINGS) {
+	if (ACTION_COUNT(actions[action]) >= MAX_FUNC_BINDINGS) {
 		return false;
 	}
-	Binding* b = actions[func].bindings + (actions[func].count++);
+	Binding* b = actions[action].bindings + ACTION_COUNT(actions[action]);
+	actions[action].countAndFlags += (1 << 2);
 
 	b->deviceID = deviceID;
 	b->inputID = inputID;
-	b->antideadzone = antideadzone;
 	b->deadzone = deadzone;
-	b->multiplier = multiplier;
-	b->minVal = minVal;
-	b->maxVal = maxVal;
+	b->inMul = inMul;
+	b->outMul = outMul / (1 + deadzone);
 	b->mulDt = mulDt;
 
 	b->val = 0.0f;
@@ -46,13 +44,13 @@ void InputManager::setApp(Application* _app) {
 	app = _app;
 }
 
-float InputManager::getInput(u8 func, float dt) {
-	if (func >= NUM_BINDINGS) {
+float InputManager::getInput(u8 action, float dt) {
+	if (action >= NUM_ACTIONS) {
 		return 0.0f; // invalid function id
 	}
 	
-	if (actions[func].tested) {
-		return actions[func].val; // The action's value has already been calculated this frame. return the stored value
+	if (ACTION_TESTED(actions[action])) {
+		return actions[action].val; // The action's value has already been calculated this frame. return the stored value
 	}
 
 	// The function's value has not been calculated
@@ -60,42 +58,38 @@ float InputManager::getInput(u8 func, float dt) {
 	float newVal=0, x;
 	Binding *b;
 	
-	for (u8 i = 0; i < actions[func].count; i++) { // loop over all bindings, calculate, and sum their values
-		b = actions[func].bindings + i;
-		x = b->val;
-		x += b->antideadzone * sign(x);
-		x = (x - b->deadzone * sign(x)) * (abs(x) > b->deadzone);
-		x *= b->multiplier;
-		x = CLAMP(x, b->minVal, b->maxVal);
-		if (b->mulDt) {
-			x *= dt;
-		}
+	for (u8 i = 0; i < ACTION_COUNT(actions[action]); i++) { // loop over all bindings, calculate, and sum their values
+		b = actions[action].bindings + i;
+		x = b->val * b->inMul - b->deadzone;
+		if (x <= 0) { continue; }
+		x *= b->outMul;
+		if (b->mulDt) { x *= dt; }
 		newVal += x;
 	}
 
-	actions[func].changed = ((newVal == 0) != (actions[func].val == 0)); // The value changed between 0 and non-0 in the last frame.
-	actions[func].val = newVal;
-	actions[func].tested = true;
+	actions[action].countAndFlags |= ((newVal == 0) != (actions[action].val == 0));  // The value changed between 0 and non-0 in the last frame.
+	actions[action].countAndFlags |= TESTED_FLAG;
+	actions[action].val = newVal;
 	return newVal;
 }
 
-bool InputManager::onInputChanged(u8 func) {
-	if (func >= NUM_BINDINGS) {
+bool InputManager::onInputChanged(u8 action) {
+	if (action >= NUM_ACTIONS) {
 		return false; // invalid function id
 	}
-	getInput(func);
-	return actions[func].changed;
+	getInput(action);
+	return ACTION_CHANGED(actions[action]);
 }
 
-bool InputManager::onInputSignal(u8 func) {
-	return getInput(func) && actions[func].changed;
+bool InputManager::onInputSignal(u8 action) {
+	return getInput(action) && ACTION_CHANGED(actions[action]);
 }
 
-bool InputManager::onInputRelease(u8 func) {
-	if (func >= NUM_BINDINGS) {
+bool InputManager::onInputRelease(u8 action) {
+	if (action >= NUM_ACTIONS) {
 		return false; // invalid function id
 	}
-	return !getInput(func) && actions[func].changed;
+	return !getInput(action) && ACTION_CHANGED(actions[action]);
 }
 
 
@@ -140,8 +134,8 @@ void InputManager::update() {
 	u8 inputID;
 
 	// loop over inputs and update binding values
-	for (u8 i = 0; i < NUM_BINDINGS; i++) {
-		for (u8 j = 0; j < actions[i].count; j++) {
+	for (u8 i = 0; i < NUM_ACTIONS; i++) {
+		for (u8 j = 0; j < ACTION_COUNT(actions[i]); j++) {
 			b = actions[i].bindings + j;
 			switch (b->deviceID) {
 			case DEVICE_KEYBOARD:
@@ -184,8 +178,8 @@ void InputManager::update() {
 		mouseInput[i] = 0;
 	}
 
-	for (u8 i = 0; i < NUM_BINDINGS; i++) {
-		actions[i].tested = false;
+	for (u8 i = 0; i < NUM_ACTIONS; i++) {
+		actions[i].countAndFlags &= 0b11111100;
 	}
 
 	glfwPollEvents();

@@ -4,25 +4,14 @@
 #include "SimpleECS/util.hpp"
 
 #define KEY_COUNT 131
-
-enum WindowStates {
-	WIN_MOUSE_LOCKED = 0x1,
-	WIN_MOUSE_JUMP = 0x2,
-	WIN_RESIZED = 0x4,
-};
-
-struct InputDevice {
-	float *axes;
-	u8 *buttons, *hats;
-	int axisCount, buttonCount, hatCount;
-};
-
 #define DEVICE_KEYBOARD 16
 #define DEVICE_MOUSE 17
 #define NUM_MOUSE_AXES 6
 #define MAX_MOUSE_INPUTS (NUM_MOUSE_AXES + 20)
 
-enum {
+#define MAX_ACTIONS 256
+// TODO: define this outside engine code
+enum Actions {
 	MOVE_LEFT,
 	MOVE_RIGHT,
 	MOVE_FORWARD,
@@ -35,33 +24,40 @@ enum {
 	QUIT,
 	FOCUS,
 
-	NUM_BINDINGS,
+	NUM_ACTIONS,
 };
 
-#define INPUT_AXIS 0
-#define INPUT_BUTTON 1
-#define INPUT_HAT 2
+enum WindowStates {
+	WIN_MOUSE_LOCKED = 0x1,
+	WIN_MOUSE_JUMP = 0x2,
+	WIN_RESIZED = 0x4,
+};
 
 struct Binding {
-	u8 deviceID; // 0-15 gamepad // 16 keyboard // 17 mouse
-	u8 inputID; // the index in list of inputs available for the device
 	float val; // the raw input value from GLFW
 	// filters are applied in the order shown
-	float antideadzone; // x += antideadzone * sign(x)
+	float inMul; // x *= inMul
 	float deadzone; // x = (x - deadzone * sign(x)) * (abs(x) > deadzone)
-	float multiplier; // x *= multiplier
-	float minVal, maxVal; // x = CLAMP(x, minVal, maxVal)
-	bool mulDt; // multiply this value by dt
+	float outMul; // outMul = outMul / (1 + deadzone)
+	bool mulDt; // x *= dt
+	u8 deviceID; // 0-15 gamepad // 16 keyboard // 17 mouse
+	u8 inputID; // the index in list of inputs available for the device
 };
 
 #define MAX_FUNC_BINDINGS 3 // Each action can only have MAX_FUNC_BINDINGS inputs bound to it
 
+#define CHANGED_FLAG 0b01
+#define TESTED_FLAG 0b10
+#define ACTION_CHANGED(action) (action.countAndFlags & CHANGED_FLAG)
+#define ACTION_TESTED(action) (action.countAndFlags & TESTED_FLAG)
+#define ACTION_COUNT(action) (action.countAndFlags >> 2)
+
 struct Action {
-	u8 count;
-	bool tested; // true if the value has been tested during the current frame. Used to remove redundantly calculating input
-	bool changed; // tells if the value changed between 0 and non-0 since the last frame.
-	float val; // the last calculated value
 	Binding bindings[MAX_FUNC_BINDINGS];
+	float val; // the last calculated value
+	u8 countAndFlags; // integer between 0 and MAX_FUNC_BINDINGS
+	//bool tested; // true if the value has been tested during the current frame. Used to remove redundantly calculating input
+	//bool changed; // tells if the value changed between 0 and non-0 since the last frame.
 };
 
 class InputManager {
@@ -72,7 +68,7 @@ public:
 	float mouseInput[MAX_MOUSE_INPUTS];
 	u8 keys[KEY_COUNT];
 
-	Action actions[NUM_BINDINGS];
+	Action actions[NUM_ACTIONS];
 
 	InputManager();
 	//~InputManager();
@@ -80,13 +76,12 @@ public:
 
 	void update();
 
-	float getInput(u8 inputFunc, float dt = 1.0f);
-	bool onInputSignal(u8 inputFunc);
-	bool onInputRelease(u8 inputFunc);
-	bool onInputChanged(u8 inputFunc);
+	float getInput(u8 action, float dt = 1.0f);
+	bool onInputSignal(u8 action);
+	bool onInputRelease(u8 action);
+	bool onInputChanged(u8 action);
 
-	bool bindInput(u8 func, u8 deviceID, u8 inputID, float antideadzone = 0.0f, float deadzone = 0.0f, 
-		float multiplier = 1.0f, float minVal = -INFINITY, float maxVal = INFINITY, bool mulDt=false);
+	bool bindInput(u8 action, u8 deviceID, u8 inputID, float deadzone = 0.0f, float inMul = 1.0f, float outMul = 1.0f, bool mulDt=false);
 
 	void setCallbacks(GLFWwindow* window);
 
@@ -243,7 +238,11 @@ enum {
 
 enum {MOUSE_X, MOUSE_Y, MOUSE_DX, MOUSE_DY, MOUSE_SCROLL_X, MOUSE_SCROLL_Y};
 
-enum {AXIS_LH, AXIS_LV, AXIS_RH, AXIS_RV, AXIS_LT, AXIS_RT};
+enum {AXIS_LX, AXIS_LY, AXIS_RX, AXIS_RY, AXIS_LT, AXIS_RT, 
+	BUTTON_A, BUTTON_B, BUTTON_X, BUTTON_Y, BUTTON_LB, BUTTON_RB, 
+	BUTTON_SELECT, BUTTON_START, BUTTON_LS, BUTTON_RS, 
+	BUTTON_UP, BUTTON_RIGHT, BUTTON_DOWN, BUTTON_LEFT
+};
 
 #define HAT_N 0b0001
 #define HAT_E 0b0010

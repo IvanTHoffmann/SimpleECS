@@ -145,9 +145,9 @@ void updateAudioSystem(CB_PARAMS) {
 				rightVolume = dot(right, diff);
 				leftVolume = -rightVolume;
 				forwardVolume = dot(forward, diff);
-				rightVolume = MAX(0, rightVolume * listener.Listener->focus + invFocus);
-				leftVolume = MAX(0, leftVolume * listener.Listener->focus + invFocus);
-				forwardVolume = MAX(0, forwardVolume * listener.Listener->focus + invFocus);
+				rightVolume = max(0.0f, rightVolume * listener.Listener->focus + invFocus);
+				leftVolume = max(0.0f, leftVolume * listener.Listener->focus + invFocus);
+				forwardVolume = max(0.0f, forwardVolume * listener.Listener->focus + invFocus);
 
 				inv_sqr = sound.Sound->fade / (pow(dist, 2) + sound.Sound->fade);
 

@@ -22,8 +22,8 @@ void updateCharacterSystem(CB_PARAMS) {
 			cam.refChild();
 			if (cam.Child->parent == playerIndex) {
 				cam.refTransform();
-				inputDir.y = 2 * (cam.Transform->rot.x * cam.Transform->rot.z + cam.Transform->rot.w * cam.Transform->rot.y);
-				inputDir.x = cam.Transform->rot.w * cam.Transform->rot.w -
+				inputDir.y = 2 * (cam.Transform->rot.x * cam.Transform->rot.z - cam.Transform->rot.w * cam.Transform->rot.y);
+				inputDir.x = cam.Transform->rot.w * cam.Transform->rot.w +
 					cam.Transform->rot.x * cam.Transform->rot.x -
 					cam.Transform->rot.y * cam.Transform->rot.y +
 					cam.Transform->rot.z * cam.Transform->rot.z;
@@ -38,8 +38,8 @@ void updateCharacterSystem(CB_PARAMS) {
 			player.Transform->pos.y = 5;
 			player.Rigidbody->vel.y = 0;
 
-			player.Rigidbody->vel.x *= 1 - 5 * evnt->dt;
-			player.Rigidbody->vel.z *= 1 - 5 * evnt->dt;
+			player.Rigidbody->vel.x *= 1 - 10 * evnt->dt;
+			player.Rigidbody->vel.z *= 1 - 10 * evnt->dt;
 
 			float dx = app->inputManager.getInput(MOVE_RIGHT) - app->inputManager.getInput(MOVE_LEFT);
 			float dy = app->inputManager.getInput(MOVE_BACKWARD) - app->inputManager.getInput(MOVE_FORWARD);

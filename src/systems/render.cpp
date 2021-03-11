@@ -82,6 +82,7 @@ void updateRenderSystem(CB_PARAMS) {
 		glUseProgram(shader->id);
 
 		matrix = mat4_cast(cam.Transform->rot);
+		matrix = inverse(matrix);
 		matrix = translate(matrix, -cam.Transform->pos);
 
 		setMatrix(shader->uniforms[U_VIEW], matrix);
