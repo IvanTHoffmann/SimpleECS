@@ -44,7 +44,7 @@ struct Binding {
 	u8 inputID; // the index in list of inputs available for the device
 };
 
-#define MAX_FUNC_BINDINGS 3 // Each action can only have MAX_FUNC_BINDINGS inputs bound to it
+#define MAX_BINDINGS_PER_ACTION 3 // Each action can only have MAX_FUNC_BINDINGS inputs bound to it
 
 #define CHANGED_FLAG 0b01
 #define TESTED_FLAG 0b10
@@ -53,7 +53,7 @@ struct Binding {
 #define ACTION_COUNT(action) (action.countAndFlags >> 2)
 
 struct Action {
-	Binding bindings[MAX_FUNC_BINDINGS];
+	Binding bindings[MAX_BINDINGS_PER_ACTION];
 	float val; // the last calculated value
 	u8 countAndFlags; // integer between 0 and MAX_FUNC_BINDINGS
 	//bool tested; // true if the value has been tested during the current frame. Used to remove redundantly calculating input

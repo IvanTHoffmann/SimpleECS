@@ -76,16 +76,7 @@ struct SoundInfo { // WAV file must have int16 sample size and 44100 sample rate
 	size_t data; // address of i16 array
 };
 
-// TODO: These should be user defined variables
-#define MAX_FBOS 3
-#define MAX_SHADERS 2
-#define MAX_MODELS 10
-#define MAX_TEXTURES 10
-#define MAX_FONTS 2
-#define MAX_SOUNDS 10
 #define ASSETS_PATH "assets\\"
-
-//
 
 class AssetManager {
 private:
@@ -93,12 +84,12 @@ private:
 	NameMap fboNames, shaderNames, modelNames, textureNames, fontNames, soundNames;
 
 public:
-	FrameBufferInfo fbos[MAX_FBOS];
-	ShaderInfo shaders[MAX_SHADERS];
-	ModelInfo models[MAX_MODELS];
-	TextureInfo textures[MAX_TEXTURES];
-	FontInfo fonts[MAX_FONTS];
-	SoundInfo sounds[MAX_SOUNDS];
+	vector<FrameBufferInfo> fbos;
+	vector<ShaderInfo> shaders;
+	vector<ModelInfo> models;
+	vector<TextureInfo> textures;
+	vector<FontInfo> fonts;
+	vector<SoundInfo> sounds;
 
 	AssetManager();
 	~AssetManager();
@@ -119,7 +110,6 @@ public:
 	void loadFont(FontInfo* fontInfo, std::string fontName, GLboolean linear);
 
 	void loadWAV(SoundInfo* soundInfo, std::string filename);
-
 
 	u16 getFboIndex(std::string name);
 	u16 getTextureIndex(std::string name, bool loadNew = true);
@@ -142,7 +132,6 @@ public:
 	ShaderInfo* getShader(std::string name);
 	SoundInfo* getSound(u16 index);
 	SoundInfo* getSound(std::string name);
-
 
 	vec3 getTextSize(std::string str, u16 fontIndex);
 };

@@ -3,37 +3,6 @@
 
 AssetManager::AssetManager() {
 	app = nullptr;
-
-	bool finished = false;
-	u16 i = 0;
-	while (!finished) {
-		finished = true;
-		if (i < MAX_MODELS) {
-			finished = false;
-			models[i].flags = 0;
-		}
-		if (i < MAX_SHADERS) {
-			finished = false;
-			shaders[i].flags = 0;
-		}
-		if (i < MAX_FONTS) {
-			finished = false;
-			fonts[i].flags = 0;
-		}
-		if (i < MAX_TEXTURES) {
-			finished = false;
-			textures[i].flags = 0;
-		}
-		if (i < MAX_FBOS) {
-			finished = false;
-			fbos[i].flags = 0;
-		}
-		if (i < MAX_SOUNDS) {
-			finished = false;
-			sounds[i].flags = 0;
-		}
-		i++;
-	}
 }
 
 AssetManager::~AssetManager() {}
@@ -44,61 +13,52 @@ void AssetManager::setApp(Application* _app) {
 }
 
 u16 AssetManager::loadFbo(std::string name, u16 w, u16 h) {
+	cout << "loadFbo(" << name << ")\n";
 	u16 fboIndex = getFboIndex(name);
 	if (fboIndex != INVALID_INDEX_16) {
 		std::cout << "ERROR: Fbo \"" << name << "\" already exists\n";
-		return INVALID_INDEX_16;
+		return INVALID_INDEX_16; // return fboIndex;
 	}
 	
-	for (fboIndex = 0; fboIndex < MAX_FBOS; fboIndex++) {
-		if (!(fbos[fboIndex].flags & ASSET_ACTIVE)) {
-			break;
-		}
-	}
+	fboIndex = fbos.size();
+	FrameBufferInfo fbo;
+	fbos.push_back(fbo);
 
-	if (fboIndex >= MAX_FBOS) {
-		std::cout << "ERROR: Attempted to exceed the maximum number of fbos (name: \"" << name << "\")\n";
-		return INVALID_INDEX_16;
-	}
-
-	u16 texIndex = getTextureIndex(name, false);
-	if (texIndex == INVALID_INDEX_16) {
-		return INVALID_INDEX_16;
-	}
+	u16 texIndex = textures.size();
+	TextureInfo texture;
+	textures.push_back(texture);
 
 	fboNames.add(name, fboIndex);
-	FrameBufferInfo* fbo = fbos + fboIndex;
-	fbo->flags |= ASSET_ACTIVE;
-	fbo->w = w;
-	fbo->h = h;
-	fbo->texIndex = texIndex;
+	fbos[fboIndex].flags |= ASSET_ACTIVE;
+	fbos[fboIndex].w = w;
+	fbos[fboIndex].h = h;
+	fbos[fboIndex].texIndex = texIndex;
 
 	textureNames.add(name, texIndex);
-	TextureInfo* tex = textures + fbo->texIndex;
-	tex->flags |= ASSET_ACTIVE;
-	tex->w = w;
-	tex->h = h;
+	textures[fbos[fboIndex].texIndex].flags |= ASSET_ACTIVE;
+	textures[fbos[fboIndex].texIndex].w = w;
+	textures[fbos[fboIndex].texIndex].h = h;
 
-	glGenFramebuffers(1, &(fbo->fboId));
-	glBindFramebuffer(GL_FRAMEBUFFER, fbo->fboId);
+	glGenFramebuffers(1, &(fbos[fboIndex].fboId));
+	glBindFramebuffer(GL_FRAMEBUFFER, fbos[fboIndex].fboId);
 
 	// generate texture
-	glGenTextures(1, &(tex->id));
-	glBindTexture(GL_TEXTURE_2D, tex->id);
+	glGenTextures(1, &(textures[fbos[fboIndex].texIndex].id));
+	glBindTexture(GL_TEXTURE_2D, textures[fbos[fboIndex].texIndex].id);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, w, h, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glBindTexture(GL_TEXTURE_2D, 0);
 
 	// attach it to currently bound framebuffer object
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, tex->id, 0);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textures[fbos[fboIndex].texIndex].id, 0);
 
-	glGenRenderbuffers(1, &(fbo->rbo));
-	glBindRenderbuffer(GL_RENDERBUFFER, fbo->rbo);
+	glGenRenderbuffers(1, &(fbos[fboIndex].rbo));
+	glBindRenderbuffer(GL_RENDERBUFFER, fbos[fboIndex].rbo);
 	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, w, h);
 	glBindRenderbuffer(GL_RENDERBUFFER, 0);
 
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, fbo->rbo);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, fbos[fboIndex].rbo);
 
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
 		printf("ERROR::FRAMEBUFFER:: Framebuffer is not complete!\n");
@@ -449,19 +409,15 @@ u16 AssetManager::getShaderIndex(std::string vert, std::string frag, bool loadNe
 	if (shaderNames.getIndex(&index, name)) {
 		return index;
 	}
-
-	for (index = 0; index < MAX_SHADERS; index++) {
-		if (!(shaders[index].flags & ASSET_ACTIVE)) {
-			if (loadNew) {
-				shaderNames.add(name, index);
-				shaders[index].flags |= ASSET_ACTIVE;
-				compileShader(shaders + index, ASSETS_PATH "shaders\\" + vert + ".vert", ASSETS_PATH "shaders\\" + frag + ".frag");
-			}
-			return index;
-		}
+	else if (loadNew) {
+		ShaderInfo shader;
+		compileShader(&shader, ASSETS_PATH "shaders\\" + vert + ".vert", ASSETS_PATH "shaders\\" + frag + ".frag");
+		index = shaders.size();
+		shaderNames.add(name, index);
+		shaders.push_back(shader);
+		return index;
 	}
-
-	std::cout << "ERROR: Attempted to exceed maximum number of shaders\n";
+	cout << "Couldnt get shader index\n";
 	return INVALID_INDEX_16;
 }
 
@@ -474,40 +430,34 @@ u16 AssetManager::getModelIndex(std::string name, bool loadNew) {
 	if (modelNames.getIndex(&index, name)) {
 		return index;
 	}
-
-	for (index = 0; index < MAX_MODELS; index++) {
-		if (!(models[index].flags & ASSET_ACTIVE)) {
-			if (loadNew) {
-				modelNames.add(name, index);
-				models[index].flags |= ASSET_ACTIVE;
-				loadMODEL(models + index, ASSETS_PATH "models\\" + name + ".MODEL");
-			}
-			return index;
-		}
+	else if (loadNew) {
+		ModelInfo model;
+		index = models.size();
+		loadMODEL(&model, ASSETS_PATH "models\\" + name + ".MODEL");
+		modelNames.add(name, index);
+		models.push_back(model);
+		return index;
 	}
-
-	std::cout << "ERROR: Attempted to exceed maximum number of models\n";
+	cout << "Couldnt get model index\n";
 	return INVALID_INDEX_16;
 }
 
 u16 AssetManager::getTextureIndex(std::string name, bool loadNew) {
-	u16 index;
+	u16 index = textures.size();
 	if (textureNames.getIndex(&index, name)) {
 		return index;
 	}
-
-	for (index = 0; index < MAX_TEXTURES; index++) {
-		if (!(textures[index].flags & ASSET_ACTIVE)) {
-			if (loadNew) {
-				textureNames.add(name, index);
-				textures[index].flags |= ASSET_ACTIVE;
-				loadTexture(textures + index, ASSETS_PATH "textures\\" + name + ".bmp", true);
-			}
-			return index;
-		}
+	else if (loadNew) {
+		TextureInfo texture;
+		loadTexture(&texture, ASSETS_PATH "textures\\" + name + ".bmp", true); // TODO: check for errors
+		textureNames.add(name, index);
+		textures.push_back(texture);
+		return index;
 	}
-
-	std::cout << "ERROR: Attempted to exceed maximum number of textures\n";
+	else {
+		return index;
+	}
+	cout << "Couldnt get texture index for {" << name << "}\n";
 	return INVALID_INDEX_16;
 } 
 
@@ -516,19 +466,15 @@ u16 AssetManager::getFontIndex(std::string name, bool loadNew) {
 	if (fontNames.getIndex(&index, name)) {
 		return index;
 	}
-
-	for (index = 0; index < MAX_FONTS; index++) {
-		if (!(fonts[index].flags & ASSET_ACTIVE)) {
-			if (loadNew) {
-				fontNames.add(name, index);
-				fonts[index].flags |= ASSET_ACTIVE;
-				loadFont(fonts + index, name, true);
-			}
-			return index;
-		}
+	else if (loadNew) {
+		FontInfo font;
+		index = fonts.size();
+		fontNames.add(name, index);
+		loadFont(&font, name, true);
+		fonts.push_back(font);
+		return index;
 	}
-
-	std::cout << "ERROR: Attempted to exceed maximum number of fonts\n";
+	cout << "Couldnt get font index\n";
 	return INVALID_INDEX_16;
 }
 
@@ -537,40 +483,36 @@ u16 AssetManager::getSoundIndex(std::string name, bool loadNew) {
 	if (soundNames.getIndex(&index, name)) {
 		return index;
 	}
-
-	for (index = 0; index < MAX_SOUNDS; index++) {
-		if (!(sounds[index].flags & ASSET_ACTIVE)) {
-			if (loadNew) {
-				soundNames.add(name, index);
-				sounds[index].flags |= ASSET_ACTIVE;
-				loadWAV(sounds + index, ASSETS_PATH "audio\\" + name + ".wav");
-			}
-			return index;
-		}
+	else if (loadNew) {
+		SoundInfo sound;
+		index = sounds.size();
+		soundNames.add(name, index);
+		loadWAV(&sound, ASSETS_PATH "audio\\" + name + ".wav");
+		sounds.push_back(sound);
+		return index;
 	}
-
-	std::cout << "ERROR: Attempted to exceed maximum number of sounds\n";
+	cout << "Couldnt get sound index\n";
 	return INVALID_INDEX_16;
 }
 
-FrameBufferInfo* AssetManager::getFbo(u16 index) { return fbos + index; }
-FrameBufferInfo* AssetManager::getFbo(std::string name) { return fbos + getFboIndex(name); }
-TextureInfo* AssetManager::getTexture(u16 index) { return textures + index; }
-TextureInfo* AssetManager::getTexture(std::string name) { return textures + getTextureIndex(name); }
-ModelInfo* AssetManager::getModel(u16 index) { return models + index; }
-ModelInfo* AssetManager::getModel(std::string name) { return models + getModelIndex(name); }
-FontInfo* AssetManager::getFont(u16 index) { return fonts + index; }
-FontInfo* AssetManager::getFont(std::string name) { return fonts + getFontIndex(name); }
-ShaderInfo* AssetManager::getShader(u16 index) { return shaders + index; }
-ShaderInfo* AssetManager::getShader(std::string vert, std::string frag) { return shaders + getShaderIndex(vert, frag); }
-ShaderInfo* AssetManager::getShader(std::string name) { return shaders + getShaderIndex(name); }
-SoundInfo* AssetManager::getSound(u16 index) { return sounds + index; }
-SoundInfo* AssetManager::getSound(std::string name) { return sounds + getSoundIndex(name); }
+FrameBufferInfo* AssetManager::getFbo(u16 index) { return &fbos[index]; }
+FrameBufferInfo* AssetManager::getFbo(std::string name) { return &fbos[getFboIndex(name)]; }
+TextureInfo* AssetManager::getTexture(u16 index) { return &textures[index]; }
+TextureInfo* AssetManager::getTexture(std::string name) { return &textures[getTextureIndex(name)]; }
+ModelInfo* AssetManager::getModel(u16 index) { return &models[index]; }
+ModelInfo* AssetManager::getModel(std::string name) { return &models[getModelIndex(name)]; }
+FontInfo* AssetManager::getFont(u16 index) { return &fonts[index]; }
+FontInfo* AssetManager::getFont(std::string name) { return &fonts[getFontIndex(name)]; }
+ShaderInfo* AssetManager::getShader(u16 index) { return &shaders[index]; }
+ShaderInfo* AssetManager::getShader(std::string vert, std::string frag) { return &shaders[getShaderIndex(vert, frag)]; }
+ShaderInfo* AssetManager::getShader(std::string name) { return &shaders[getShaderIndex(name)]; }
+SoundInfo* AssetManager::getSound(u16 index) { return &sounds[index]; }
+SoundInfo* AssetManager::getSound(std::string name) { return &sounds[getSoundIndex(name)]; }
 
 
 vec3 AssetManager::getTextSize(std::string str, u16 fontIndex) {
-	FontInfo* font = fonts + fontIndex;
-	TextureInfo* texture = textures + font->texIndex;
+	FontInfo* font = &fonts[fontIndex];
+	TextureInfo* texture = &textures[font->texIndex];
 
 	u16* p = (u16*)(app->memoryManager.memStart + font->offset_loc);
 

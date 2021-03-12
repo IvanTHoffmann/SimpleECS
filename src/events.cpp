@@ -27,34 +27,6 @@ void onInit(CB_PARAMS) {
 	appData->fpsSum = 0;
 
 	initRenderSystem(CB_ARGS);
-	// TODO: Pre-loading assets shouldn't be required. Fix that.
-	
-	/*
-	assets->getFontIndex("calibri");
-	assets->getFontIndex("cour");
-
-	assets->getSoundIndex("music/AnotherOne");
-	assets->getSoundIndex("music/PlopXD");
-	assets->getSoundIndex("music/SickBeat");
-	
-	assets->getShaderIndex("simple");
-	assets->getShaderIndex("ui");
-
-	assets->getModelIndex("wheel");
-	assets->getModelIndex("cube");
-	assets->getModelIndex("rect");
-	assets->getModelIndex("crate");
-	assets->getModelIndex("sphere");
-	assets->getModelIndex("map");
-
-	assets->getTextureIndex("boop");
-	assets->getTextureIndex("crosshair");
-	assets->getTextureIndex("cobble");
-	assets->getTextureIndex("crate");
-
-
-	//*/
-
 	initInputSystem(CB_ARGS);
 	initLoaderSystem(CB_ARGS);
 	initPhysicsSystem(CB_ARGS);

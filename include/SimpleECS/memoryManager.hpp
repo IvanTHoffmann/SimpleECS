@@ -2,14 +2,26 @@
 
 #include "dtypes.hpp"
 
-/* Allocation frequency
-	(1) - Application Core
-	(2) - Common Assets
-	(3) - Common Assets 2
-	(4) - Common Assets 3
-	(5) - Component Data
-	(6) - Data Stream
-	(7) - Frame Data
+/*
+	InputManager				- Size can change upon setting a binding
+	- actions					std::vector<Action>
+		- bindings				std::vector<Binding>
+	
+	ComponentManager			- Size can change when a level loads
+	- prefabs;					std::vector<Prefab>
+		- u32* indices;			std::vector<u32>[numComponents]
+	- Component data;			std::vector<u8>
+	
+	EventManager				- Size can change every frame
+	- Event* events;			std::Vector<Event>
+	- void* eventData;			std::Vector<u8> (or use the temporary stack)
+
+	AssetManager				- Size can change at any time
+	- FontOffsets* fontOffsets;	std::Vector<u16>
+	- Sound* soundData;			std::Vector<i16>
+
+	Temporary Stack
+
 */
 
 class MemoryManager {

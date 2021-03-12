@@ -81,11 +81,10 @@ void initLoaderSystem(CB_PARAMS) {
 	ent.syncSound();
 
 	ent.copyMesh();
-	ent.Mesh->meshId = assets->getModelIndex("jukebox");
-	ent.Mesh->diffuseId = assets->getTextureIndex("jukebox");
+	ent.Mesh->meshId = assets->getModelIndex("sphere");
+	ent.Mesh->diffuseId = assets->getTextureIndex("crash");
 	ent.Mesh->tiling = vec2(1);
 	ent.syncMesh();
-
 
 	//* music
 	ent.create("sound");
@@ -322,7 +321,7 @@ void initLoaderSystem(CB_PARAMS) {
 	ent.refTransform();
 	ent.Transform->flags = 0;
 	ent.Transform->pos = vec3(1, 1, .8);
-	ent.Transform->scale = vec3(500, 500, 1);
+	ent.Transform->scale = vec3(200, 200, 1);
 
 	// GLFWmonitor* monitor = glfwGetWindowMonitor(appData->window);
 	GLFWmonitor* monitor = glfwGetPrimaryMonitor();

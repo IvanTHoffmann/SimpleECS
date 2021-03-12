@@ -24,7 +24,7 @@ bool InputManager::bindInput(u8 action, u8 deviceID, u8 inputID, float deadzone,
 	if (action >= NUM_ACTIONS) {
 		return false;
 	}
-	if (ACTION_COUNT(actions[action]) >= MAX_FUNC_BINDINGS) {
+	if (ACTION_COUNT(actions[action]) >= MAX_BINDINGS_PER_ACTION) {
 		return false;
 	}
 	Binding* b = actions[action].bindings + ACTION_COUNT(actions[action]);
