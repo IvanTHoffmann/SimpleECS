@@ -17,11 +17,11 @@ void updateInputSystem(CB_PARAMS) {
 		app->eventManager.dispatch(&onStop);
 	}
 
-	if (app->inputManager.onInputSignal(QUIT)) {
+	if (app->inputManager.onInputSignal("QUIT")) {
 		app->eventManager.dispatch(&onStop);
 	}
 
-	if (app->inputManager.onInputSignal(FOCUS)) { // move to ui system
+	if (app->inputManager.onInputSignal("FOCUS")) { // move to ui system
 		app->inputManager.windowState ^= WIN_MOUSE_LOCKED; // toggle mouse lock
 		app->inputManager.windowState |= WIN_MOUSE_JUMP;
 		app->inputManager.mouseInput[2] = 0;

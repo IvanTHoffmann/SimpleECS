@@ -11,40 +11,54 @@ void initLoaderSystem(CB_PARAMS) {
 	ComponentManager* comps = &app->componentManager;
 
 	InputManager* inp = &app->inputManager;
-	// set key bindings
-	inp->bindInput(MOVE_FORWARD,	DEVICE_KEYBOARD, KEY_W);
-	inp->bindInput(MOVE_LEFT,		DEVICE_KEYBOARD, KEY_A);
-	inp->bindInput(MOVE_BACKWARD,	DEVICE_KEYBOARD, KEY_S);
-	inp->bindInput(MOVE_RIGHT,		DEVICE_KEYBOARD, KEY_D);
-	float mouseSensitivity = .003f;
-	inp->bindInput(LOOK_LEFT,	DEVICE_MOUSE, 2, 0.0f, -1.0f, mouseSensitivity);
-	inp->bindInput(LOOK_RIGHT,	DEVICE_MOUSE, 2, 0.0f, 1.0f, mouseSensitivity);
-	inp->bindInput(LOOK_UP,		DEVICE_MOUSE, 3, 0.0f, 1.0f, mouseSensitivity);
-	inp->bindInput(LOOK_DOWN,	DEVICE_MOUSE, 3, 0.0f, -1.0f, mouseSensitivity);
 
-	inp->bindInput(JUMP,	DEVICE_KEYBOARD, KEY_SPACE);
-	inp->bindInput(FOCUS,	DEVICE_KEYBOARD, KEY_ESCAPE);
-	inp->bindInput(QUIT,	DEVICE_KEYBOARD, KEY_DELETE);
+	// strings can be replaced with their indices when getting input, and actions dont necessarily need to be assigned names
+	inp->newAction("MOVE_LEFT");
+	inp->newAction("MOVE_RIGHT");
+	inp->newAction("MOVE_FORWARD");
+	inp->newAction("MOVE_BACKWARD");
+	inp->newAction("LOOK_LEFT");
+	inp->newAction("LOOK_RIGHT");
+	inp->newAction("LOOK_UP");
+	inp->newAction("LOOK_DOWN");
+	inp->newAction("JUMP");
+	inp->newAction("QUIT");
+	inp->newAction("FOCUS");
+
+	// set key bindings
+	inp->bindInput("MOVE_FORWARD",	DEVICE_KEYBOARD, KEY_W);
+	inp->bindInput("MOVE_LEFT",		DEVICE_KEYBOARD, KEY_A);
+	inp->bindInput("MOVE_BACKWARD",	DEVICE_KEYBOARD, KEY_S);
+	inp->bindInput("MOVE_RIGHT",		DEVICE_KEYBOARD, KEY_D);
+	float mouseSensitivity = .003f;
+	inp->bindInput("LOOK_LEFT",	DEVICE_MOUSE, 2, 0.0f, -1.0f, mouseSensitivity);
+	inp->bindInput("LOOK_RIGHT",	DEVICE_MOUSE, 2, 0.0f, 1.0f, mouseSensitivity);
+	inp->bindInput("LOOK_UP",		DEVICE_MOUSE, 3, 0.0f, 1.0f, mouseSensitivity);
+	inp->bindInput("LOOK_DOWN",	DEVICE_MOUSE, 3, 0.0f, -1.0f, mouseSensitivity);
+
+	inp->bindInput("JUMP",	DEVICE_KEYBOARD, KEY_SPACE);
+	inp->bindInput("FOCUS",	DEVICE_KEYBOARD, KEY_ESCAPE);
+	inp->bindInput("QUIT",	DEVICE_KEYBOARD, KEY_DELETE);
 
 	float moveSensitivity = 1.25f;
 	float deadzone = .2f;
-	inp->bindInput(MOVE_FORWARD,	0, AXIS_LY, deadzone, -1.0f, moveSensitivity);
-	inp->bindInput(MOVE_LEFT,		0, AXIS_LX, deadzone, -1.0f, moveSensitivity);
-	inp->bindInput(MOVE_BACKWARD,	0, AXIS_LY, deadzone,  1.0f, moveSensitivity);
-	inp->bindInput(MOVE_RIGHT,		0, AXIS_LX, deadzone,  1.0f, moveSensitivity);
-	inp->bindInput(MOVE_FORWARD,	0, BUTTON_UP);
-	inp->bindInput(MOVE_LEFT,		0, BUTTON_LEFT);
-	inp->bindInput(MOVE_BACKWARD,	0, BUTTON_DOWN);
-	inp->bindInput(MOVE_RIGHT,		0, BUTTON_RIGHT);
+	inp->bindInput("MOVE_FORWARD",	0, AXIS_LY, deadzone, -1.0f, moveSensitivity);
+	inp->bindInput("MOVE_LEFT",		0, AXIS_LX, deadzone, -1.0f, moveSensitivity);
+	inp->bindInput("MOVE_BACKWARD",	0, AXIS_LY, deadzone,  1.0f, moveSensitivity);
+	inp->bindInput("MOVE_RIGHT",		0, AXIS_LX, deadzone,  1.0f, moveSensitivity);
+	inp->bindInput("MOVE_FORWARD",	0, BUTTON_UP);
+	inp->bindInput("MOVE_LEFT",		0, BUTTON_LEFT);
+	inp->bindInput("MOVE_BACKWARD",	0, BUTTON_DOWN);
+	inp->bindInput("MOVE_RIGHT",		0, BUTTON_RIGHT);
 	float gpSensitivity = 5.0f;
-	inp->bindInput(LOOK_UP,		0, AXIS_RY, deadzone,  1.0f, gpSensitivity,  true);
-	inp->bindInput(LOOK_LEFT,	0, AXIS_RX, deadzone, -1.0f, gpSensitivity, true);
-	inp->bindInput(LOOK_DOWN,	0, AXIS_RY, deadzone, -1.0f, gpSensitivity, true);
-	inp->bindInput(LOOK_RIGHT,	0, AXIS_RX, deadzone,  1.0f, gpSensitivity,  true);
+	inp->bindInput("LOOK_UP",		0, AXIS_RY, deadzone,  1.0f, gpSensitivity,  true);
+	inp->bindInput("LOOK_LEFT",	0, AXIS_RX, deadzone, -1.0f, gpSensitivity, true);
+	inp->bindInput("LOOK_DOWN",	0, AXIS_RY, deadzone, -1.0f, gpSensitivity, true);
+	inp->bindInput("LOOK_RIGHT",	0, AXIS_RX, deadzone,  1.0f, gpSensitivity,  true);
 
-	inp->bindInput(JUMP,	0, BUTTON_A);
-	inp->bindInput(FOCUS,	0, BUTTON_SELECT);
-	inp->bindInput(QUIT,	0, BUTTON_START);
+	inp->bindInput("JUMP",	0, BUTTON_A);
+	inp->bindInput("FOCUS",	0, BUTTON_SELECT);
+	inp->bindInput("QUIT",	0, BUTTON_START);
 
 	// register prefabs
 	comps->addPrefab("misc", 5, CharacterBit | TransformBit | MeshBit | ChildBit);

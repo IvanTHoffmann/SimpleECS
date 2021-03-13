@@ -5,11 +5,6 @@ InputManager::InputManager() {
 	windowH = 0;
 	windowState = WIN_RESIZED | WIN_MOUSE_JUMP;
 
-	for (u8 i = 0; i < NUM_ACTIONS; i++) {
-		actions[i].countAndFlags = 0;
-		actions[i].val = 0.0f;
-	}
-
 	for (u8 i = 0; i < KEY_COUNT; i++) {
 		keys[i] = 0;
 	}
@@ -19,9 +14,29 @@ InputManager::InputManager() {
 	}
 }
 
+void InputManager::newAction(string actionName) {
+	u16 index;
+	if (actionNames.getIndex(&index, actionName)) {
+		return;
+	}
+	Action action;
+	action.val = 0.0f;
+	action.countAndFlags = 0;
+	actionNames.add(actionName, actions.size());
+	actions.push_back(action);
+}
+
+bool InputManager::bindInput(string action, u8 deviceID, u8 inputID, float deadzone, float inMul, float outMul, bool mulDt) {
+	u16 index;
+	if (actionNames.getIndex(&index, action)) {
+		return bindInput(index, deviceID, inputID, deadzone, inMul, outMul, mulDt);
+	}
+	cout << "ERROR: Tried to bind input to unregistered action \"" << action << "\"\n";
+	return 0;
+}
 
 bool InputManager::bindInput(u8 action, u8 deviceID, u8 inputID, float deadzone, float inMul, float outMul, bool mulDt) {
-	if (action >= NUM_ACTIONS) {
+	if (action >= actions.size()) {
 		return false;
 	}
 	if (ACTION_COUNT(actions[action]) >= MAX_BINDINGS_PER_ACTION) {
@@ -44,16 +59,56 @@ void InputManager::setApp(Application* _app) {
 	app = _app;
 }
 
+//// Simplify this code
+
+float InputManager::getInput(string action, float dt) {
+	u16 index;
+	if (actionNames.getIndex(&index, action)) {
+		return getInput(index, dt);
+	}
+	cout << "ERROR: Tried to read input from unregistered action \"" << action << "\"\n";
+	return 0;
+}
+
+bool InputManager::onInputSignal(string action) {
+	u16 index;
+	if (actionNames.getIndex(&index, action)) {
+		return onInputSignal(index);
+	}
+	cout << "ERROR: Tried to read input from unregistered action \"" << action << "\"\n";
+	return 0;
+}
+
+bool InputManager::onInputRelease(string action) {
+	u16 index;
+	if (actionNames.getIndex(&index, action)) {
+		return onInputRelease(index);
+	}
+	cout << "ERROR: Tried to read input from unregistered action \"" << action << "\"\n";
+	return 0;
+}
+
+bool InputManager::onInputChanged(string action) {
+	u16 index;
+	if (actionNames.getIndex(&index, action)) {
+		return onInputChanged(index);
+	}
+	cout << "ERROR: Tried to read input from unregistered action \"" << action << "\"\n";
+	return 0;
+}
+
+////
+
 float InputManager::getInput(u8 action, float dt) {
-	if (action >= NUM_ACTIONS) {
-		return 0.0f; // invalid function id
+	if (action >= actions.size()) {
+		return 0.0f;
 	}
 	
 	if (ACTION_TESTED(actions[action])) {
 		return actions[action].val; // The action's value has already been calculated this frame. return the stored value
 	}
 
-	// The function's value has not been calculated
+	// The action's value has not been calculated
 
 	float newVal=0, x;
 	Binding *b;
@@ -74,8 +129,8 @@ float InputManager::getInput(u8 action, float dt) {
 }
 
 bool InputManager::onInputChanged(u8 action) {
-	if (action >= NUM_ACTIONS) {
-		return false; // invalid function id
+	if (action >= actions.size()) {
+		return false;
 	}
 	getInput(action);
 	return ACTION_CHANGED(actions[action]);
@@ -86,8 +141,8 @@ bool InputManager::onInputSignal(u8 action) {
 }
 
 bool InputManager::onInputRelease(u8 action) {
-	if (action >= NUM_ACTIONS) {
-		return false; // invalid function id
+	if (action >= actions.size()) {
+		return false;
 	}
 	return !getInput(action) && ACTION_CHANGED(actions[action]);
 }
@@ -134,7 +189,7 @@ void InputManager::update() {
 	u8 inputID;
 
 	// loop over inputs and update binding values
-	for (u8 i = 0; i < NUM_ACTIONS; i++) {
+	for (u8 i = 0; i < actions.size(); i++) {
 		for (u8 j = 0; j < ACTION_COUNT(actions[i]); j++) {
 			b = actions[i].bindings + j;
 			switch (b->deviceID) {
@@ -178,7 +233,7 @@ void InputManager::update() {
 		mouseInput[i] = 0;
 	}
 
-	for (u8 i = 0; i < NUM_ACTIONS; i++) {
+	for (u8 i = 0; i < actions.size(); i++) {
 		actions[i].countAndFlags &= 0b11111100;
 	}
 

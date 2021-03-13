@@ -4,28 +4,10 @@
 #include "SimpleECS/util.hpp"
 
 #define KEY_COUNT 131
-#define DEVICE_KEYBOARD 16
+#define DEVICE_KEYBOARD 16 // joystick devices are referred to by their index (0-15)
 #define DEVICE_MOUSE 17
 #define NUM_MOUSE_AXES 6
 #define MAX_MOUSE_INPUTS (NUM_MOUSE_AXES + 20)
-
-#define MAX_ACTIONS 256
-// TODO: define this outside engine code
-enum Actions {
-	MOVE_LEFT,
-	MOVE_RIGHT,
-	MOVE_FORWARD,
-	MOVE_BACKWARD,
-	LOOK_LEFT,
-	LOOK_RIGHT,
-	LOOK_UP,
-	LOOK_DOWN,
-	JUMP,
-	QUIT,
-	FOCUS,
-
-	NUM_ACTIONS,
-};
 
 enum WindowStates {
 	WIN_MOUSE_LOCKED = 0x1,
@@ -44,7 +26,7 @@ struct Binding {
 	u8 inputID; // the index in list of inputs available for the device
 };
 
-#define MAX_BINDINGS_PER_ACTION 3 // Each action can only have MAX_FUNC_BINDINGS inputs bound to it
+#define MAX_BINDINGS_PER_ACTION 3 // Each action can only have MAX_FUNC_BINDINGS inputs bound to it (for now)
 
 #define CHANGED_FLAG 0b01
 #define TESTED_FLAG 0b10
@@ -55,7 +37,7 @@ struct Binding {
 struct Action {
 	Binding bindings[MAX_BINDINGS_PER_ACTION];
 	float val; // the last calculated value
-	u8 countAndFlags; // integer between 0 and MAX_FUNC_BINDINGS
+	u8 countAndFlags; // integer between 0<<2 and MAX_FUNC_BINDINGS<<2 + two bit flags (see below)
 	//bool tested; // true if the value has been tested during the current frame. Used to remove redundantly calculating input
 	//bool changed; // tells if the value changed between 0 and non-0 since the last frame.
 };
@@ -68,19 +50,27 @@ public:
 	float mouseInput[MAX_MOUSE_INPUTS];
 	u8 keys[KEY_COUNT];
 
-	Action actions[NUM_ACTIONS];
+	NameMap actionNames;
+	vector<Action> actions;
 
 	InputManager();
 	//~InputManager();
 	void setApp(Application* _app);
 
 	void update();
+	void newAction(string action);
 
+	float getInput(string action, float dt = 1.0f);
+	bool onInputSignal(string action);
+	bool onInputRelease(string action);
+	bool onInputChanged(string action);
+	
 	float getInput(u8 action, float dt = 1.0f);
 	bool onInputSignal(u8 action);
 	bool onInputRelease(u8 action);
 	bool onInputChanged(u8 action);
-
+	
+	bool bindInput(string action, u8 deviceID, u8 inputID, float deadzone = 0.0f, float inMul = 1.0f, float outMul = 1.0f, bool mulDt = false);
 	bool bindInput(u8 action, u8 deviceID, u8 inputID, float deadzone = 0.0f, float inMul = 1.0f, float outMul = 1.0f, bool mulDt=false);
 
 	void setCallbacks(GLFWwindow* window);

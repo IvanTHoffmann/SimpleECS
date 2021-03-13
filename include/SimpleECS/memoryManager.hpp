@@ -4,8 +4,7 @@
 
 /*
 	InputManager				- Size can change upon setting a binding
-	- actions					std::vector<Action>
-		- bindings				std::vector<Binding>
+	- bindings					std::vector<Binding>
 	
 	ComponentManager			- Size can change when a level loads
 	- prefabs;					std::vector<Prefab>

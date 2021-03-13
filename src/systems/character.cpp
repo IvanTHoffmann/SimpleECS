@@ -41,8 +41,8 @@ void updateCharacterSystem(CB_PARAMS) {
 			player.Rigidbody->vel.x *= 1 - 10 * evnt->dt;
 			player.Rigidbody->vel.z *= 1 - 10 * evnt->dt;
 
-			float dx = app->inputManager.getInput(MOVE_RIGHT) - app->inputManager.getInput(MOVE_LEFT);
-			float dy = app->inputManager.getInput(MOVE_BACKWARD) - app->inputManager.getInput(MOVE_FORWARD);
+			float dx = app->inputManager.getInput("MOVE_RIGHT") - app->inputManager.getInput("MOVE_LEFT");
+			float dy = app->inputManager.getInput("MOVE_BACKWARD") - app->inputManager.getInput("MOVE_FORWARD");
 
 			vec3 localAccel(dx * inputDir.x - dy * inputDir.y, 0, dx * inputDir.y + dy * inputDir.x);
 			float mag = length(localAccel);
@@ -52,7 +52,7 @@ void updateCharacterSystem(CB_PARAMS) {
 			localAccel *= player.Character->speed;
 			player.Rigidbody->vel += localAccel * evnt->dt;
 
-			if (app->inputManager.onInputSignal(JUMP)) {
+			if (app->inputManager.onInputSignal("JUMP")) {
 				player.Rigidbody->vel.y += 10;
 			}
 		}

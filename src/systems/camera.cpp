@@ -13,8 +13,8 @@ void updateCameraSystem(CB_PARAMS) {
 
 		// adjust the offset to the player
 
-		float dx = app->inputManager.getInput(LOOK_RIGHT, evnt->dt) - app->inputManager.getInput(LOOK_LEFT, evnt->dt);
-		float dy = app->inputManager.getInput(LOOK_UP, evnt->dt) - app->inputManager.getInput(LOOK_DOWN, evnt->dt);
+		float dx = app->inputManager.getInput("LOOK_RIGHT", evnt->dt) - app->inputManager.getInput("LOOK_LEFT", evnt->dt);
+		float dy = app->inputManager.getInput("LOOK_UP", evnt->dt) - app->inputManager.getInput("LOOK_DOWN", evnt->dt);
 
 		camera.Child->offsetRot += vec3(dx, dy, 0);
 		camera.Child->offsetRot.y = clamp(camera.Child->offsetRot.y, -1.0f, 1.0f);

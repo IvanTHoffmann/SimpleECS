@@ -88,7 +88,7 @@ void AssetManager::finishTexture(GLboolean linear) {
 void AssetManager::loadTexture(TextureInfo* texInfo, std::string filename, GLboolean linear) {
 	FILE* f;
 	if (fopen_s(&f, &filename[0], "rb")) {
-		std::cout << "could not open " << filename << "\n";
+		cout << "could not open " << filename << "\n";
 		return;
 	}
 
@@ -495,6 +495,7 @@ u16 AssetManager::getSoundIndex(std::string name, bool loadNew) {
 	return INVALID_INDEX_16;
 }
 
+// if the index returned from a string function is invalid, the program will crash :|
 FrameBufferInfo* AssetManager::getFbo(u16 index) { return &fbos[index]; }
 FrameBufferInfo* AssetManager::getFbo(std::string name) { return &fbos[getFboIndex(name)]; }
 TextureInfo* AssetManager::getTexture(u16 index) { return &textures[index]; }

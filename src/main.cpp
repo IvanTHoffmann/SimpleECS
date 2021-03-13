@@ -14,7 +14,7 @@ MISC
 
 ENGINE SEPARATION
 -The component manager should accept the number of components and their sizes
--Entities should be retrieved from the component manager where they can have memory allocated for component data
+-Entities should be retrieved from the component manager where they can get memory allocated for component data
 
 NETWORKING
 -add a network manager
@@ -39,6 +39,8 @@ Audio
 -Support changing audio devices at runtime
 
 Assets
+-Fix some unsecure functions
+-Remove uniform location array macro dependencies in shader compiler function
 -Allow user to set the asset path at runtime
 -Allow asset reloading
 -Allow asset unloading
