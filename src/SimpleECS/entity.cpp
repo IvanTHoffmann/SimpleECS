@@ -1,62 +1,64 @@
 #include "SimpleECS/simpleECS.hpp"
 
-bool shouldSync(u8* reference, u8* copy) {
-	if (reference == copy) {
-		if (*copy & COMP_NO_SYNC) {
-			// This is used for easy debugging. You can insert a breakpoint here to pause the program when something tries to sync changes to a COMP_NO_SYNC flagged component
-			return false;
-		}
-		return true;
-	}
-	return reference == nullptr;
-}
-
-#define COPY_DEF(c) bool Entity::copy ## c() { if (ref ## c()) { c ## Copy = *c; c = &(c ## Copy); return true; } }
-#define SYNC_DEF(c) bool Entity::sync ## c() { if (shouldSync((u8*)c, (u8*)&c##Copy) && ref ## c()) { *c = c ## Copy; return true; } return false; }
-#define REF_DEF(c) bool Entity::ref ## c() { return app->componentManager.getCompPtr((u8**)(&c), COMP_ENUM(c), prefabID, index); }
-
-FOREACH_COMP(COPY_DEF);
-FOREACH_COMP(SYNC_DEF);
-FOREACH_COMP(REF_DEF);
-
-
 Entity::Entity(Application* appPtr) {
 	app = appPtr;
-	clearVars();
 	index = -1;
 	prefabID = -1;
+	pointers.resize(app->componentManager.components.size());
+	fill(pointers.begin(), pointers.end(), nullptr);
 }
 
-#define POINT_TO_COPY(c) (c = &c##Copy);
-#define CLEAR_FLAGS(c) (c##Copy.flags = 0);
+bool Entity::ref(string name) {
+	u16 index = -1;
+	app->componentManager.componentNames.getIndex(&index, name);
+	return ref(index);
+}
 
+bool Entity::ref(u16 id) {
+	if (id >= app->componentManager.components.size()) { // invalid component id
+		return false;
+	}
+	app->componentManager.getCompPtr(&pointers[id], id, prefabID, index);
+}
 
-void Entity::clearVars() {
-	FOREACH_COMP(POINT_TO_COPY);
-	FOREACH_COMP(CLEAR_FLAGS);
+void* Entity::get(string name) {
+	u16 index = -1;
+	app->componentManager.componentNames.getIndex(&index, name);
+	return get(index);
+}
+
+void* Entity::get(u16 id) {
+	if (id >= pointers.size()) {
+		return nullptr;
+	}
+	if (pointers[id] == nullptr) {
+		ref(id);
+	}
+	return pointers[id];
 }
 
 bool Entity::setPrefab(std::string prefabName) {
 	u16 pID;
 	if (!app->componentManager.getPrefabID(&pID, prefabName)) {
-		std::cout << "ERROR: Entity.setPrefab: Could not set prefab using name \"" << prefabName << "\"\n";
+		std::cout << "WARNING: Entity.setPrefab could not set prefab using name \"" << prefabName << "\"\n";
 		return false;
 	}
 	return setPrefab(pID);
 }
 
 bool Entity::setPrefab(u16 pID) {
+	fill(pointers.begin(), pointers.end(), nullptr);
 	PrefabData* prefab;
 	if (!app->componentManager.getPrefab(&prefab, pID)) {
 		return false;
 	}
-	clearVars();
 	prefabID = pID;
 	index = -1;
 	return true;
 }
 
 bool Entity::setIndex(u16 localIndex) {
+	fill(pointers.begin(), pointers.end(), nullptr);
 	PrefabData* prefab;
 	if (!app->componentManager.getPrefab(&prefab, prefabID)) {
 		std::cout << "ERROR: Entity.setIndex: Could not find prefab with ID \"" << prefabID << "\"\n";
@@ -67,13 +69,12 @@ bool Entity::setIndex(u16 localIndex) {
 		std::cout << "ERROR: Entity.setIndex: index \"" << localIndex << "\" exceeds the prefab's capacity (" << prefab->capacity << ")\n";
 		return false;
 	}
-
-	clearVars();
 	index = localIndex;
 	return true;
 }
 
 bool Entity::setGlobalIndex(u32 globalIndex) {
+	fill(pointers.begin(), pointers.end(), nullptr);
 	PrefabData* prefab;
 	prefabID = -1;
 	while (app->componentManager.getPrefab(&prefab, ++prefabID)) {
@@ -118,8 +119,6 @@ bool Entity::create(u16 pID) {
 
 	// found space in class array
 	prefab->size++;
-
-	clearVars();
 	return true;
 
 	/*
@@ -134,6 +133,7 @@ bool Entity::create(u16 pID) {
 
 // Advances to the next entity in its class. Returns false when it reaches the end of the class's array.
 bool Entity::next() {
+	fill(pointers.begin(), pointers.end(), nullptr);
 	PrefabData* prefab; // TODO: Consider storing a pointer to prefab in entity class or ensuring that prefabID has been confirmed as valid
 	if (!app->componentManager.getPrefab(&prefab, prefabID)) {
 		return false;
@@ -143,6 +143,7 @@ bool Entity::next() {
 
 // Advances to the next entity that satisfies the masks. Returns false when there are no more to check
 bool Entity::next(compMask reqMask, compMask exclMask) {
+	fill(pointers.begin(), pointers.end(), nullptr);
 	PrefabData* prefab;
 	if (app->componentManager.getPrefab(&prefab, prefabID) && next()) {
 		// We assume the prefab is matching
@@ -164,7 +165,7 @@ bool Entity::next(compMask reqMask, compMask exclMask) {
 
 bool Entity::isDeleted() {
 	u8* compFlags = nullptr;
-	for (u16 compID = 0; compID < COMP_COUNT; compID++) {
+	for (u16 compID = 0; compID < app->componentManager.components.size(); compID++) {
 		if (app->componentManager.getCompPtr(&compFlags, compID, prefabID, index)) {
 			return *compFlags & COMP_DELETED;
 		}
@@ -178,21 +179,23 @@ bool Entity::destroy() {
 	if (!app->componentManager.getPrefab(&prefab, prefabID)) { return false; }
 	if (index >= prefab->size) { return false; }
 
+#if 0
 	if (prefab->flags & PREFAB_MEM_PACK) {
-		if (index < prefab->size - 1) {
+		if (index < prefab->size - (u16)1) {
 			// overwrite with attributes from entity[size-1]
 			for (u8 compID = 0; compID < COMP_COUNT; compID++) {
 				if (prefab->mask.test(compID)) {
 					u8* dst, * src;
 					app->componentManager.getCompPtr(&dst, compID, prefabID, index);
 					app->componentManager.getCompPtr(&src, compID, prefabID, prefab->size - 1);
-					memcpy(dst, src, compSize[compID]);
+					memcpy(dst, src, app->componentManager.components[compID].size);
 				}
 			}
 		}
 		prefab->size--;
 	}
 	else {
+#endif
 		// set components to deleted
 		u8* compFlags = nullptr;
 		for (u8 compID = 0; compID < COMP_COUNT; compID++) {
@@ -200,7 +203,7 @@ bool Entity::destroy() {
 				*compFlags = COMP_DELETED;
 			}
 		}
-	}
+	//}
 	return true;
 }
 

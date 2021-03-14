@@ -5,19 +5,13 @@
 
 #include "compData.hpp" // TODO: remove dependency if possible
 
-#define COMP_VAR(c) COMP_TYPE(c) c ## Copy;
-#define COMP_PTR(c) COMP_TYPE(c)* c;
-#define COPY_DECL(c) bool copy ## c();
-#define SYNC_DECL(c) bool sync ## c();
-#define REF_DECL(c) bool ref ## c();
-
-
+#define GET(ent, comp) ((comp ## Comp*)(ent)->get(comp ## Enum))
 
 /* TODO: Entity
 
 Make entity finctions safer. Several of them rely on the entity being valid and the component data packed.
 Consider writing general copy, sync, and ref functions accepting bitmasks.
-Use the mask variable or get rid of it
+compMask mask; or hasComponents(BitMask);
 
 //*/
 class Entity {
@@ -26,10 +20,8 @@ private:
 	u32 index;
 	u16 prefabID;
 
-	void clearVars();
-	FOREACH_COMP(COMP_VAR);
-
 public:
+	vector<u8*> pointers;
 	Entity(Application* app);
 
 	bool create(std::string prefabName);
@@ -52,12 +44,8 @@ public:
 	u16 getPrefabID() { return prefabID; }
 	bool getGlobalIndex(u32* id);
 
-
-	//compMask mask;
-	FOREACH_COMP(COMP_PTR);
-	FOREACH_COMP(COPY_DECL);
-	FOREACH_COMP(SYNC_DECL);
-	FOREACH_COMP(REF_DECL);
-
-	//void _setMask(attrMask newMask); // this might be convenient for quickly checking if the necessary attributes are all enabled.
+	bool ref(string name);
+	bool ref(u16 id);
+	void* get(string name);
+	void* get(u16 id);
 };

@@ -1,8 +1,8 @@
 #include "SimpleECS/simpleECS.hpp"
 
 
-AssetManager::AssetManager() {
-	app = nullptr;
+AssetManager::AssetManager(Application* _app) {
+	app = _app;
 }
 
 AssetManager::~AssetManager() {}

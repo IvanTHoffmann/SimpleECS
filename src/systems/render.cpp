@@ -44,8 +44,8 @@ void initRenderSystem(CB_PARAMS) {
 void updateRenderSystem(CB_PARAMS) {
 	AppData* appData = (AppData*)app->getData();
 
-	Entity cam(app);
-	Entity ent(app);
+	Entity* cam = appData->ent;
+	Entity* ent = appData->ent2;
 
 	mat4 matrix;
 
@@ -54,23 +54,19 @@ void updateRenderSystem(CB_PARAMS) {
 	FrameBufferInfo* fbo;
 	ModelInfo* model;
 
-	cam.setPrefab("camera");
+	cam->setPrefab("camera");
 	
 	shader = app->assetManager.getShader("simple", "simple");
 
 	glDisable(GL_BLEND);
 
-	while (cam.next()) {
-		cam.copyCamera();
-		cam.copyTransform();
-
-		fbo = app->assetManager.getFbo(cam.Camera->fboId);
+	while (cam->next()) {
+		fbo = app->assetManager.getFbo(GET(cam, Camera)->fboId);
 		glBindFramebuffer(GL_FRAMEBUFFER, fbo->fboId);
 		glViewport(0, 0, fbo->w, fbo->h);
-		cam.Camera->aspect = (float)fbo->w / fbo->h;
-		cam.syncCamera();
+		GET(cam, Camera)->aspect = (float)fbo->w / fbo->h;
 		glUseProgram(shader->id);
-		setMatrix(shader->uniforms[U_PROJ], transpose(perspective(cam.Camera->fov, cam.Camera->aspect, 1.0f, 100.0f)));
+		setMatrix(shader->uniforms[U_PROJ], transpose(perspective(GET(cam, Camera)->fov, GET(cam, Camera)->aspect, 1.0f, 100.0f)));
 
 		glClear(GL_COLOR_BUFFER_BIT);
 		glClear(GL_DEPTH_BUFFER_BIT);
@@ -81,46 +77,44 @@ void updateRenderSystem(CB_PARAMS) {
 
 		glUseProgram(shader->id);
 
-		matrix = mat4_cast(cam.Transform->rot);
+		matrix = mat4_cast(GET(cam, Transform)->rot);
 		matrix = inverse(matrix);
-		matrix = translate(matrix, -cam.Transform->pos);
+		matrix = translate(matrix, -GET(cam, Transform)->pos);
 
 		setMatrix(shader->uniforms[U_VIEW], matrix);
 
 		// DRAW MESHES
 		glEnable(GL_DEPTH_TEST);
 
-		ent.setPrefab(0);
-		while (ent.next(MeshBit | TransformBit, GuiBit)) {
-			ent.refMesh();
-			glBindVertexArray(app->assetManager.models[ent.Mesh->meshId].vao);
+		ent->setPrefab(0);
+		while (ent->next(MeshBit | TransformBit, GuiBit)) {
+			glBindVertexArray(app->assetManager.models[GET(ent, Mesh)->meshId].vao);
 			glUniform1i(shader->uniforms[U_DIFFUSE_TEX], 0);
 			glUniform1i(shader->uniforms[U_NORMAL_TEX], 1);
 			glUniform1i(shader->uniforms[U_SPECULAR_TEX], 2);
 
 			glActiveTexture(GL_TEXTURE0 + 0); // Texture unit 2
-			glBindTexture(GL_TEXTURE_2D, app->assetManager.textures[ent.Mesh->diffuseId].id);
+			glBindTexture(GL_TEXTURE_2D, app->assetManager.textures[GET(ent, Mesh)->diffuseId].id);
 
-			if (ent.Mesh->normalId != (GLuint)(-1)) {
+			if (GET(ent, Mesh)->normalId != (GLuint)(-1)) {
 				glActiveTexture(GL_TEXTURE0 + 1); // Texture unit 2
-				glBindTexture(GL_TEXTURE_2D, app->assetManager.textures[ent.Mesh->normalId].id);
+				glBindTexture(GL_TEXTURE_2D, app->assetManager.textures[GET(ent, Mesh)->normalId].id);
 			}
-			if (ent.Mesh->specularId != (GLuint)(-1)) {
+			if (GET(ent, Mesh)->specularId != (GLuint)(-1)) {
 				glActiveTexture(GL_TEXTURE0 + 2); // Texture unit 2
-				glBindTexture(GL_TEXTURE_2D, app->assetManager.textures[ent.Mesh->specularId].id);
+				glBindTexture(GL_TEXTURE_2D, app->assetManager.textures[GET(ent, Mesh)->specularId].id);
 			}
 
 			
-			glUniform2fv(shader->uniforms[U_TILING], 1, value_ptr(ent.Mesh->tiling));
+			glUniform2fv(shader->uniforms[U_TILING], 1, value_ptr(GET(ent, Mesh)->tiling));
 
-			ent.refTransform();
-			matrix = mat4(ent.Transform->scale.x, 0, 0, 0,
-						  0, ent.Transform->scale.y, 0, 0,
-						  0, 0, ent.Transform->scale.z, 0,
-						  ent.Transform->pos.x, ent.Transform->pos.y, ent.Transform->pos.z, 1) * mat4_cast(ent.Transform->rot);
+			matrix = mat4(GET(ent, Transform)->scale.x, 0, 0, 0,
+						  0, GET(ent, Transform)->scale.y, 0, 0,
+						  0, 0, GET(ent, Transform)->scale.z, 0,
+						  GET(ent, Transform)->pos.x, GET(ent, Transform)->pos.y, GET(ent, Transform)->pos.z, 1) * mat4_cast(GET(ent, Transform)->rot);
 
 			setMatrix(shader->uniforms[U_MODEL], matrix);
-			glDrawArrays(GL_TRIANGLES, 0, app->assetManager.models[ent.Mesh->meshId].vertexCount);
+			glDrawArrays(GL_TRIANGLES, 0, app->assetManager.models[GET(ent, Mesh)->meshId].vertexCount);
 		}
 	}
 
@@ -163,31 +157,28 @@ void updateRenderSystem(CB_PARAMS) {
 
 	//
 #define SET_GUI_MATRIX \
-	percScale = (ent.Gui->flags & COMP_GUI_PIXEL_SCALE) == 0; \
-	percAnchor = (ent.Gui->flags & COMP_GUI_PIXEL_ANCHOR) == 0; \
-	percPos = (ent.Gui->flags & COMP_GUI_PIXEL_POS) == 0; \
-	matrix = translate(mat4(1.0f), ent.Transform->pos * (percPos * vec3(1) - (percPos - 1) * invWinSize)); \
-	s = ent.Transform->scale * (percScale * vec3(1) - (percScale - 1) * invWinSize); \
-	matrix = translate(matrix, -ent.Gui->anchor * (percAnchor * s - (percAnchor - 1) * invWinSize)); \
+	percScale = (GET(ent, Gui)->flags & COMP_GUI_PIXEL_SCALE) == 0; \
+	percAnchor = (GET(ent, Gui)->flags & COMP_GUI_PIXEL_ANCHOR) == 0; \
+	percPos = (GET(ent, Gui)->flags & COMP_GUI_PIXEL_POS) == 0; \
+	matrix = translate(mat4(1.0f), GET(ent, Transform)->pos * (percPos * vec3(1) - (percPos - 1) * invWinSize)); \
+	s = GET(ent, Transform)->scale * (percScale * vec3(1) - (percScale - 1) * invWinSize); \
+	matrix = translate(matrix, -GET(ent, Gui)->anchor * (percAnchor * s - (percAnchor - 1) * invWinSize)); \
 	matrix = scale(matrix, s);
 	//
 	
-	ent.setPrefab("gui");
-	while (ent.next()) {
-		ent.refMesh();
-		glBindVertexArray(app->assetManager.models[ent.Mesh->meshId].vao);
-		glBindTexture(GL_TEXTURE_2D, app->assetManager.textures[ent.Mesh->diffuseId].id);
+	ent->setPrefab("gui");
+	while (ent->next()) {
+		glBindVertexArray(app->assetManager.models[GET(ent, Mesh)->meshId].vao);
+		glBindTexture(GL_TEXTURE_2D, app->assetManager.textures[GET(ent, Mesh)->diffuseId].id);
 
-		ent.refGui();
-		glUniform4fv(shader->uniforms[U_COLOR], 1, value_ptr(ent.Gui->color));
+		glUniform4fv(shader->uniforms[U_COLOR], 1, value_ptr(GET(ent, Gui)->color));
 
-		ent.refTransform();
 		SET_GUI_MATRIX
 
 		glUniform2fv(shader->uniforms[U_FRAME_POS], 1, value_ptr(framePos));
 		glUniform2fv(shader->uniforms[U_FRAME_SIZE], 1, value_ptr(frameSize));
 		glUniformMatrix4fv(shader->uniforms[U_MODEL], 1, GL_FALSE, value_ptr(shift * matrix));
-		glDrawArrays(GL_TRIANGLES, 0, app->assetManager.models[ent.Mesh->meshId].vertexCount);
+		glDrawArrays(GL_TRIANGLES, 0, app->assetManager.models[GET(ent, Mesh)->meshId].vertexCount);
 	}
 
 	//glEnable(GL_BLEND);
@@ -197,7 +188,7 @@ void updateRenderSystem(CB_PARAMS) {
 
 	// DRAW TEXT
 	
-	ent.setPrefab("text");
+	ent->setPrefab("text");
 	model = app->assetManager.getModel("rect");
 	glBindVertexArray(model->vao);
 
@@ -207,34 +198,31 @@ void updateRenderSystem(CB_PARAMS) {
 	char c;
 	float charWidth, aspect = app->inputManager.windowH / (float)app->inputManager.windowW;
 
-	while (ent.next()) {
-		ent.copyText();
-		font = app->assetManager.getFont(ent.Text->fontIndex);
+	while (ent->next()) {
+		font = app->assetManager.getFont(GET(ent, Text)->fontIndex);
 		texture = app->assetManager.getTexture(font->texIndex);
 
 		glBindTexture(GL_TEXTURE_2D, texture->id);
 
-		ent.copyGui();
-		glUniform4fv(shader->uniforms[U_COLOR], 1, value_ptr(ent.Gui->color));
+		glUniform4fv(shader->uniforms[U_COLOR], 1, value_ptr(GET(ent, Gui)->color));
 
-		ent.copyTransform();
 		SET_GUI_MATRIX
 
 		framePos.y = 0;
 		frameSize.y = 1;
-		vec3 bottomLeft = ent.Transform->pos - ent.Gui->anchor * ent.Transform->scale;
-		vec2 rectSize = { 0, matrix[1][1] / ent.Text->lineCount };
+		vec3 bottomLeft = GET(ent, Transform)->pos - GET(ent, Gui)->anchor * GET(ent, Transform)->scale;
+		vec2 rectSize = { 0, matrix[1][1] / GET(ent, Text)->lineCount };
 
 		p = (u16*)(app->memoryManager.memStart + font->offset_loc);
 
-		for (uint8_t i = 0; ent.Text->str[i] != '\0'; i++) {
-			switch (ent.Text->str[i]) {
+		for (uint8_t i = 0; GET(ent, Text)->str[i] != '\0'; i++) {
+			switch (GET(ent, Text)->str[i]) {
 			case '\n':
 				matrix[3][1] -= matrix[1][1];
 				matrix[3][0] = bottomLeft.x;
 				break;
 			default:
-				c = ent.Text->str[i] - 32;
+				c = GET(ent, Text)->str[i] - 32;
 				if (0 <= c && c < font->charCount) {
 					framePos.x = p[c] / (float)texture->w;
 

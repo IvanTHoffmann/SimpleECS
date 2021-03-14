@@ -16,24 +16,26 @@ void localToGlobalTransform(TransformComp* trans, TransformComp* other) {
 }
 
 
-void getGlobalJointTransforms(COMP_TYPE(Transform)* globalA, COMP_TYPE(Transform)* globalB, Entity* constraint, Entity* bodyA = nullptr, Entity* bodyB = nullptr) {
-	globalA->pos = vec3(constraint->Constraint->offsets[0].pos);
-	globalA->rot = quat(constraint->Constraint->offsets[0].rot);
-	globalB->pos = vec3(constraint->Constraint->offsets[1].pos);
-	globalB->rot = quat(constraint->Constraint->offsets[1].rot);
+void getGlobalJointTransforms(TransformComp* globalA, TransformComp* globalB, Entity* constraint, Entity* bodyA = nullptr, Entity* bodyB = nullptr) {
+	ConstraintComp* c = (ConstraintComp*)constraint->get("Constraint");
+	TransformComp* trans = (TransformComp*)bodyA->get("Transform");
+	globalA->pos = vec3(c->offsets[0].pos);
+	globalA->rot = quat(c->offsets[0].rot);
+	globalB->pos = vec3(c->offsets[1].pos);
+	globalB->rot = quat(c->offsets[1].rot);
 	if (bodyA != nullptr) {
-		localToGlobalTransform(bodyA->Transform, globalA);
+		localToGlobalTransform(trans, globalA);
 	}
 	if (bodyB != nullptr) {
-		localToGlobalTransform(bodyB->Transform, globalB);
+		localToGlobalTransform(trans, globalB);
 	}
 };
 
 
 void updatePhysicsSystem(CB_PARAMS) {
 	AppData* appData = (AppData*)app->getData();
-	Entity body(app), c0(app), c1(app);
-	Entity *a, *b;
+	Entity* body = appData->ent;
+	Entity* c0 = appData->ent2;
 	TransformComp globalA, globalB;
 
 	float dt = evnt->dt / appData->physicsInfo.steps;
@@ -41,85 +43,61 @@ void updatePhysicsSystem(CB_PARAMS) {
 	vec3 gravityDt = appData->physicsInfo.gravity * dt;
 
 	for (u8 i = 0; i < appData->physicsInfo.steps; i++) {
-		body.setPrefab("rigidbody");
+		body->setPrefab("rigidbody");
 
 		// predict position
-		while (body.next()) { // move body
-			body.copyTransform();
-			body.copyRigidbody();
-
-			if (body.Rigidbody->invMass)
+		while (body->next()) { // move body
+			if (GET(body, Rigidbody)->invMass)
 			{
-				body.Rigidbody->lastPos = body.Transform->pos;
-				body.Rigidbody->lastRot = body.Transform->rot;
-				body.Rigidbody->lastVel = body.Rigidbody->vel;
-				body.Rigidbody->vel += gravityDt;
-				body.Transform->pos += body.Rigidbody->vel * dt;
-				body.Transform->rot *= body.Rigidbody->spin * dt;
-
-				body.syncTransform();
-				body.syncRigidbody();
+				GET(body, Rigidbody)->lastPos = GET(body, Transform)->pos;
+				GET(body, Rigidbody)->lastRot = GET(body, Transform)->rot;
+				GET(body, Rigidbody)->lastVel = GET(body, Rigidbody)->vel;
+				GET(body, Rigidbody)->vel += gravityDt;
+				GET(body, Transform)->pos += GET(body, Rigidbody)->vel * dt;
+				GET(body, Transform)->rot *= GET(body, Rigidbody)->spin * dt;
 			}
 		}
 
 		// correct position
-		c0.setPrefab("constraint");
-		while (c0.next()) { // update constraints
-			c0.refConstraint();
+		c0->setPrefab("constraint");
+		while (c0->next()) { // update constraints
 
-			if (IS_SHAPE(c0.Constraint->type)) {
-				if (!c0.Constraint->body) {
+			if (IS_SHAPE(GET(c0, Constraint)->type)) {
+				if (!GET(c0, Constraint)->body) {
 					continue;
 				}
-				body.setGlobalIndex(c0.Constraint->body);
+				body->setGlobalIndex(GET(c0, Constraint)->body);
 
-				body.copyTransform();
-				body.copyRigidbody();
-
-				if (body.Transform->pos.y < body.Transform->scale.y) {
+				if (GET(body, Transform)->pos.y < GET(body, Transform)->scale.y) {
 					// colliding with ground
-					body.Transform->pos.y = body.Transform->scale.y;
-					c0.Constraint->flags |= COMP_CONSTRAINT_ACTIVE;
+					GET(body, Transform)->pos.y = GET(body, Transform)->scale.y;
+					GET(c0, Constraint)->flags |= COMP_CONSTRAINT_ACTIVE;
 				}
 				else {
-					c0.Constraint->flags &= ~COMP_CONSTRAINT_ACTIVE;
+					GET(c0, Constraint)->flags &= ~COMP_CONSTRAINT_ACTIVE;
 				}
-
-				body.syncTransform();
-				body.syncRigidbody();
 			}
 		}
 
 		// predict velocity
-		body.setPrefab("rigidbody");
-		while (body.next()) { // update body velocities
-			body.refTransform();
-			body.copyRigidbody();
-			
-			//std::cout << body.Transform->pos.y - body.Rigidbody->lastPos.y << '\n';
+		body->setPrefab("rigidbody");
+		while (body->next()) { // update body velocities
+			//std::cout << GET(body, Transform)->pos.y - GET(body, Rigidbody)->lastPos.y << '\n';
 
-			body.Rigidbody->vel = (body.Transform->pos - body.Rigidbody->lastPos) / dt;
-			body.Rigidbody->spin = (body.Transform->rot * conjugate(body.Rigidbody->lastRot)) / dt;
-
-			body.syncRigidbody();
+			GET(body, Rigidbody)->vel = (GET(body, Transform)->pos - GET(body, Rigidbody)->lastPos) / dt;
+			GET(body, Rigidbody)->spin = (GET(body, Transform)->rot * conjugate(GET(body, Rigidbody)->lastRot)) / dt;
 
 		}
 
 		// correct velocity
-		c0.setPrefab("constraint");
-		while (c0.next()) { // solve friction and restitution
-			c0.refConstraint();
+		c0->setPrefab("constraint");
+		while (c0->next()) { // solve friction and restitution
+			if (GET(c0, Constraint)->flags & COMP_CONSTRAINT_ACTIVE && IS_SHAPE(GET(c0, Constraint)->type)) {
+				body->setGlobalIndex(GET(c0, Constraint)->body);
 
-			if (c0.Constraint->flags & COMP_CONSTRAINT_ACTIVE && IS_SHAPE(c0.Constraint->type)) {
-				body.setGlobalIndex(c0.Constraint->body);
-
-				body.copyRigidbody();
-
-				body.Rigidbody->lastVel.y *= -1;
-				body.Rigidbody->vel.y = body.Rigidbody->lastVel.y;
-
-				body.syncRigidbody();
-				c0.Constraint->flags &= ~COMP_CONSTRAINT_ACTIVE;
+				GET(body, Rigidbody)->lastVel.y *= -1;
+				GET(body, Rigidbody)->vel.y = GET(body, Rigidbody)->lastVel.y;
+				GET(c0, Constraint)->flags &= ~COMP_CONSTRAINT_ACTIVE;
 			}
 		}
 	}

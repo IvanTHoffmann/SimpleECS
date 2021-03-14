@@ -4,7 +4,7 @@
 #define CHUNK_SIZE (1<<12)
 
 
-MemoryManager::MemoryManager() {
+MemoryManager::MemoryManager(Application* _app) {
 	memStart = nullptr;
 	memSize = 0;
 	head = 0;

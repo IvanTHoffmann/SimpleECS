@@ -33,7 +33,7 @@ typedef struct {
 typedef struct {
 	u8 flags;
 	GLuint id;
-	GLint uniforms[U_COUNT];
+	GLint uniforms[U_COUNT]; // TODO: fix this so it doesnt rely on (what should be) user defined macros
 } ShaderInfo;
 
 typedef struct {
@@ -91,7 +91,7 @@ public:
 	vector<FontInfo> fonts;
 	vector<SoundInfo> sounds;
 
-	AssetManager();
+	AssetManager(Application* app);
 	~AssetManager();
 
 	void setApp(Application* _app);

@@ -1,7 +1,8 @@
 #include "SimpleECS/simpleECS.hpp"
 
 
-EventManager::EventManager() {
+EventManager::EventManager(Application* _app) {
+	app = _app;
 	/*
 	eventsCapacity = 0;
 	newEventsCapacity = 0;
@@ -18,11 +19,6 @@ EventManager::EventManager() {
 
 EventManager::~EventManager() {
 	
-}
-
-
-void EventManager::setApp(Application* _app) {
-	app = _app;
 }
 
 /*

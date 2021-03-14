@@ -13,11 +13,11 @@ private:
 	void* data;
 
 public:
-	AssetManager assetManager;
-	ComponentManager componentManager;
-	EventManager eventManager;
-	MemoryManager memoryManager;
-	InputManager inputManager;
+	AssetManager assetManager = AssetManager(this);
+	ComponentManager componentManager = ComponentManager(this);
+	EventManager eventManager = EventManager(this);
+	MemoryManager memoryManager = MemoryManager(this);
+	InputManager inputManager = InputManager(this);
 	
 	Application(void* appData);
 	~Application();

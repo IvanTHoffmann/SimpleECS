@@ -1,5 +1,6 @@
 #pragma once
 
+#include "SimpleECS/entity.hpp"
 #include "SimpleECS/util.hpp"
 #include "portaudio.h"
 
@@ -24,4 +25,5 @@ struct AppData {
 
 	bool doubleBuf;
 	u16 fpsSum;
+	Entity *ent, *ent2;
 };

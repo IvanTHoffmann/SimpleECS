@@ -1,6 +1,7 @@
 #include "SimpleECS/inputManager.hpp"
 
-InputManager::InputManager() {
+InputManager::InputManager(Application* _app) {
+	app = _app;
 	windowW = 0;
 	windowH = 0;
 	windowState = WIN_RESIZED | WIN_MOUSE_JUMP;
@@ -53,10 +54,6 @@ bool InputManager::bindInput(u8 action, u8 deviceID, u8 inputID, float deadzone,
 	b->mulDt = mulDt;
 
 	b->val = 0.0f;
-}
-
-void InputManager::setApp(Application* _app) {
-	app = _app;
 }
 
 //// Simplify this code

@@ -8,7 +8,6 @@
 #include "glm.hpp"
 #include "gtc/type_ptr.hpp"
 
-#include <bitset> // write custom bitmask class so I can change the size at runtime or use std::vector
 #include <map>
 #include <vector>
 

@@ -1,45 +1,41 @@
 #include "systems/character.hpp"
+#include "appData.hpp"
 
 
 void updateCharacterSystem(CB_PARAMS) {
-	Entity cam(app);
-	Entity player(app);
-	cam.setPrefab("camera");
-	player.setPrefab("player");
+	AppData* appData = (AppData*)app->getData();
+	Entity* cam = appData->ent;
+	Entity* player = appData->ent2;
+	cam->setPrefab("camera");
+	player->setPrefab("player");
 
 	vec2 inputDir = vec2(1, 0);
 
-	while (player.next()) {
-		player.refCharacter();
-		player.copyTransform();
-		player.copyRigidbody();
-
-
+	while (player->next()) {
 		u32 playerIndex;
-		player.getGlobalIndex(&playerIndex);
+		player->getGlobalIndex(&playerIndex);
 
-		while (cam.next()) {
-			cam.refChild();
-			if (cam.Child->parent == playerIndex) {
-				cam.refTransform();
-				inputDir.y = 2 * (cam.Transform->rot.x * cam.Transform->rot.z - cam.Transform->rot.w * cam.Transform->rot.y);
-				inputDir.x = cam.Transform->rot.w * cam.Transform->rot.w +
-					cam.Transform->rot.x * cam.Transform->rot.x -
-					cam.Transform->rot.y * cam.Transform->rot.y +
-					cam.Transform->rot.z * cam.Transform->rot.z;
+		cam->setIndex(0);
+		while (cam->next()) {
+			if (GET(cam, Child)->parent == playerIndex) {
+				inputDir.y = 2 * (GET(cam, Transform)->rot.x * GET(cam, Transform)->rot.z - GET(cam, Transform)->rot.w * GET(cam, Transform)->rot.y);
+				inputDir.x = GET(cam, Transform)->rot.w * GET(cam, Transform)->rot.w +
+					GET(cam, Transform)->rot.x * GET(cam, Transform)->rot.x -
+					GET(cam, Transform)->rot.y * GET(cam, Transform)->rot.y +
+					GET(cam, Transform)->rot.z * GET(cam, Transform)->rot.z;
 				inputDir = normalize(inputDir);
 				break;
 			}
 		}
 
-		player.Rigidbody->vel.y -= 20 * evnt->dt;
+		GET(player, Rigidbody)->vel.y -= 20 * evnt->dt;
 
-		if (player.Transform->pos.y <= 5) { // grounded
-			player.Transform->pos.y = 5;
-			player.Rigidbody->vel.y = 0;
+		if (GET(player, Transform)->pos.y <= 5) { // grounded
+			GET(player, Transform)->pos.y = 5;
+			GET(player, Rigidbody)->vel.y = 0;
 
-			player.Rigidbody->vel.x *= 1 - 10 * evnt->dt;
-			player.Rigidbody->vel.z *= 1 - 10 * evnt->dt;
+			GET(player, Rigidbody)->vel.x *= 1 - 10 * evnt->dt;
+			GET(player, Rigidbody)->vel.z *= 1 - 10 * evnt->dt;
 
 			float dx = app->inputManager.getInput("MOVE_RIGHT") - app->inputManager.getInput("MOVE_LEFT");
 			float dy = app->inputManager.getInput("MOVE_BACKWARD") - app->inputManager.getInput("MOVE_FORWARD");
@@ -49,16 +45,14 @@ void updateCharacterSystem(CB_PARAMS) {
 			if (mag > 1) {
 				localAccel /= mag;
 			}
-			localAccel *= player.Character->speed;
-			player.Rigidbody->vel += localAccel * evnt->dt;
+			localAccel *= GET(player, Character)->speed;
+			GET(player, Rigidbody)->vel += localAccel * evnt->dt;
 
 			if (app->inputManager.onInputSignal("JUMP")) {
-				player.Rigidbody->vel.y += 10;
+				GET(player, Rigidbody)->vel.y += 10;
 			}
 		}
 
-		player.Transform->pos += player.Rigidbody->vel * evnt->dt;
-		player.syncTransform();
-		player.syncRigidbody();
+		GET(player, Transform)->pos += GET(player, Rigidbody)->vel * evnt->dt;
 	}
 }

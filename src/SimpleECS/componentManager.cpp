@@ -1,80 +1,76 @@
 #include "SimpleECS/simpleECS.hpp"
 
 
-ComponentManager::ComponentManager() {
-	clearPrefabs();
-	dataSize = 0;
-	data = 0;
-	prefabCount = 0;
-}
-
-ComponentManager::~ComponentManager() {
-	if (dataSize) {
-		app->memoryManager.freeTo(data);
-	}
-}
-
-void ComponentManager::setApp(Application* _app) {
+ComponentManager::ComponentManager(Application* _app) {
 	app = _app;
+	clearPrefabs();
+}
+
+ComponentManager::~ComponentManager() {}
+
+u16 ComponentManager::addComponent(std::string name, size_t size) {
+	u16 index = components.size();
+	if (componentNames.getIndex(&index, name)) {
+		cout << "WARNING: A component named \"" << name << "\" already exists\n";
+		return -1;
+	}
+	componentNames.add(name, index);
+	CompData comp;
+	comp.size = size;
+	components.push_back(comp);
+	return index;
 }
 
 u16 ComponentManager::addPrefab(std::string name, u32 capacity, compMask mask, u8 flags) {
-	for (u16 i = 0; i < maxPrefabs; i++) {
-		if (!(prefabs[i].flags && PREFAB_ACTIVE)) {
-			prefabNames.add(name, i);
-			prefabs[i].flags = flags | PREFAB_ACTIVE;
-			prefabs[i].capacity = capacity;
-			prefabs[i].size = 0;
-			prefabs[i].newest = capacity - 1;
-			prefabs[i].mask = mask;
-			prefabCount++;
-			return i;
-		}
+	u16 index = prefabs.size();
+	if (prefabNames.getIndex(&index, name)) {
+		cout << "WARNING: A prefab named \"" << name << "\" already exists\n";
+		return -1;
 	}
-	std::cout << "ERROR: Couldn't add prefab \"" << name << "\" because the maximum number of prefabs has already been reached\n";
-	return INVALID_INDEX_16;
+	prefabNames.add(name, index);
+	PrefabData prefab;
+	prefab.size = 0;
+	prefab.capacity = capacity;
+	prefab.mask = mask;
+	prefab.flags = flags | PREFAB_ACTIVE;
+	prefab.newest = capacity - 1;
+	prefabs.push_back(prefab);
+	return index;
 }
 
 void ComponentManager::recalculateMemory() {
 	// SET ENTITY INDICES
 	u16 entityIndex = 0;
-	for (u16 i = 0; i < maxPrefabs; i++) {
+	for (u16 i = 0; i < prefabs.size(); i++) {
 		prefabs[i].entityIndex = entityIndex;
 		entityIndex += prefabs[i].capacity;
+		prefabs[i].indices.resize(components.size());
 	}
 
 	// count the max number of each component and how many bytes will be needed to store everything
 	u32 bytes = 0;
 	u32 compCount;
 
-	for (u8 compID = 0; compID < COMP_COUNT; compID++) {
-		arrays[compID] = bytes; // set starting position for current component array
+	for (u8 compID = 0; compID < components.size(); compID++) {
+		components[compID].startPos = bytes; // set starting position for current component array
 
 		compCount = 0;
-		for (u8 prefabID = 0; prefabID < maxPrefabs; prefabID++) {
+		for (u8 prefabID = 0; prefabID < prefabs.size(); prefabID++) {
 			prefabs[prefabID].indices[compID] = compCount; // set starting index to current number of components in the array
 			compCount += prefabs[prefabID].capacity * prefabs[prefabID].mask[compID]; // add maxCount if component is enabled in mask
 		}
-		bytes += compCount * compSize[compID];
+		bytes += compCount * components[compID].size;
 	}
 
 	// ALLOCATE MEMORY
 
-	if (data) {
-		app->memoryManager.freeTo(data);
-	}
-	std::cout << "Components (" << bytes << ") bytes\n";
-	data = app->memoryManager.getHead();
-	dataSize = bytes;
-	u8* dataPtr = (u8*)app->memoryManager.getBlock(bytes);
-	for (u32 i = 0; i < dataSize; i++) {
-		dataPtr[i] = 0;
-	}
+	data.resize(bytes);
+	fill(data.begin(), data.end(), 0);
 }
 
 // TODO: finish removePrefab functions
 void ComponentManager::removePrefab(u16 prefabID) {
-	if (prefabID >= prefabCount) { return; }
+	if (prefabID >= prefabs.size()) { return; }
 	prefabs[prefabID].flags = 0;
 	// remove prefab name entry from prefabNames
 }
@@ -88,15 +84,13 @@ void ComponentManager::removePrefab(std::string name) {
 //
 
 void ComponentManager::clearPrefabs() {
-	for (u16 i = 0; i < maxPrefabs; i++) {
-		prefabs[i].flags = 0;
-	}
+	prefabs.clear();
 	prefabNames.clear();
 }
 
 bool ComponentManager::getPrefab(PrefabData** out, u16 id) {
-	if (id >= prefabCount) { return false; }
-	*out = prefabs + id;
+	if (id >= prefabs.size()) { return false; }
+	*out = &prefabs[id];
 	return true;
 }
 
@@ -119,17 +113,19 @@ bool ComponentManager::getPrefabName(std::string* out, u16 id) {
 // TODO: Make sure these functions can never crash
 bool ComponentManager::getCompPtr(u8** p, u16 compID, u16 prefabID, u32 entIndex) {
 	*p = nullptr;
-	PrefabData prefab = prefabs[prefabID];
-	if (!prefab.mask[compID]) { return false; }
-	if (entIndex >= prefab.size) { return false; }
-	*p = app->memoryManager.memStart + data + arrays[compID] + ((u32)prefabs[prefabID].indices[compID] + entIndex) * compSize[compID];
+	if (compID >= components.size() || prefabID >= prefabs.size() || entIndex >= prefabs[prefabID].size || !prefabs[prefabID].mask[compID]) {
+		return false;
+	}
+	*p = &data[components[compID].startPos + (prefabs[prefabID].indices[compID] + entIndex) * components[compID].size];
 	return true; 
 }
 
 bool ComponentManager::getCompPtr(u8** p, u16 compID, u32 compIndex) {
 	*p = nullptr;
-	if (arrays[compID] + compSize[compID] * compIndex >= (compID < COMP_COUNT - 1 ? arrays[compID + 1] : dataSize)) { return false; }
-	*p = app->memoryManager.memStart + data + arrays[compID] + compIndex * compSize[compID];
+	if (compID >= components.size() || compIndex >= components[compID].count) {
+		return false;
+	}
+	*p = &data[components[compID].startPos + compIndex * components[compID].size];
 	return true;
 }
 //

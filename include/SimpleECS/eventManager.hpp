@@ -19,7 +19,7 @@ struct Event {
 };
 
 
-// TODO: These should be user defined variables
+// TODO: Remove event cap
 #define MAX_EVENTS 16
 #define MAX_NEW_EVENTS 16
 
@@ -33,9 +33,8 @@ private:
 	u8 eventsCapacity = 16, newEventsCapacity = 16;
 
 public:
-	EventManager();
+	EventManager(Application* _app);
 	~EventManager();
-	void setApp(Application* _app);
 
 	/*
 	void setEventsCapacity(u16 n);

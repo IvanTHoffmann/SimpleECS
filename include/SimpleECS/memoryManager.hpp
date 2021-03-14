@@ -3,7 +3,7 @@
 #include "dtypes.hpp"
 
 /*
-	InputManager				- Size can change upon setting a binding
+	InputManager
 	- bindings					std::vector<Binding>
 	
 	ComponentManager			- Size can change when a level loads
@@ -29,7 +29,7 @@ private:
 
 public:
 	u8 *memStart;
-	MemoryManager();
+	MemoryManager(Application* _app);
 	~MemoryManager();
 
 	size_t getHead();

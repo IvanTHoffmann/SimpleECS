@@ -12,7 +12,8 @@ static int paSoundCallback(
 	void* userData) {
 
 	Application* app = (Application*)userData;
-	Entity ent(app);
+	Entity e(app);
+	Entity* ent = &e;
 	SoundInfo* soundInfo;
 
 	int16_t* out = (int16_t*)outputBuffer;
@@ -20,11 +21,10 @@ static int paSoundCallback(
 	i16* p;
 
 	bool firstSound = true;
-	ent.setPrefab("sound");
-	while (ent.next()) {
-		ent.copySound();
-		CONTINUE_IF_DISABLED(ent.Sound);
-		soundInfo = app->assetManager.getSound(ent.Sound->soundIndex);
+	ent->setPrefab("sound");
+	while (ent->next()) {
+		CONTINUE_IF_DISABLED(GET(ent, Sound));
+		soundInfo = app->assetManager.getSound(GET(ent, Sound)->soundIndex);
 		p = (i16*)(app->memoryManager.memStart + soundInfo->data);
 
 		for (unsigned long i = 0; i < framesPerBuffer * 2; i+=2) {
@@ -33,27 +33,26 @@ static int paSoundCallback(
 				out[i + 1] = 0;
 			}
 
-			soundInfo = app->assetManager.getSound(ent.Sound->soundIndex);
+			soundInfo = app->assetManager.getSound(GET(ent, Sound)->soundIndex);
 
-			ent.Sound->subIndex += ent.Sound->speed;
-			ent.Sound->sampleIndex = ent.Sound->sampleIndex + (int)ent.Sound->subIndex;
+			GET(ent, Sound)->subIndex += GET(ent, Sound)->speed;
+			GET(ent, Sound)->sampleIndex = GET(ent, Sound)->sampleIndex + (int)GET(ent, Sound)->subIndex;
 
-			if (ent.Sound->sampleIndex > soundInfo->sampleCount / soundInfo->numChannels) { // finished playing sample
-				ent.Sound->sampleIndex = (soundInfo->sampleCount / soundInfo->numChannels) * (ent.Sound->speed < 0);
-				ent.Sound->subIndex = 0.0f;
-				if (!(ent.Sound->flags & COMP_SOUND_LOOP)) {
-					ent.Sound->flags |= COMP_DISABLED;
+			if (GET(ent, Sound)->sampleIndex > soundInfo->sampleCount / soundInfo->numChannels) { // finished playing sample
+				GET(ent, Sound)->sampleIndex = (soundInfo->sampleCount / soundInfo->numChannels) * (GET(ent, Sound)->speed < 0);
+				GET(ent, Sound)->subIndex = 0.0f;
+				if (!(GET(ent, Sound)->flags & COMP_SOUND_LOOP)) {
+					GET(ent, Sound)->flags |= COMP_DISABLED;
 					break;
 				}
 			}
 			else {
-				ent.Sound->subIndex = MOD1(ent.Sound->subIndex);
+				GET(ent, Sound)->subIndex = MOD1(GET(ent, Sound)->subIndex);
 			}
 
-			out[i + 0] += p[ent.Sound->sampleIndex * soundInfo->numChannels] * ent.Sound->leftVolume;
-			out[i + 1] += p[ent.Sound->sampleIndex * soundInfo->numChannels + (soundInfo->numChannels > 1)] * ent.Sound->rightVolume;
+			out[i + 0] += p[GET(ent, Sound)->sampleIndex * soundInfo->numChannels] * GET(ent, Sound)->leftVolume;
+			out[i + 1] += p[GET(ent, Sound)->sampleIndex * soundInfo->numChannels + (soundInfo->numChannels > 1)] * GET(ent, Sound)->rightVolume;
 		}
-		ent.syncSound();
 		firstSound = false;
 	}
 	return paContinue;
@@ -111,33 +110,29 @@ void initAudioSystem(CB_PARAMS) {
 }
 
 void updateAudioSystem(CB_PARAMS) {
-	Entity sound(app), listener(app);
+	AppData* appData = (AppData*)app->getData();
+	Entity* sound = appData->ent;
+	Entity* listener = appData->ent2;
 
 	vec3 diff, right, forward;
 	float dist, inv_sqr;
 	float leftVolume, rightVolume, forwardVolume;
 	float invFocus;
 
-	listener.setPrefab(0);
-	while (listener.next(ListenerBit)) {
-		listener.refListener();
-		listener.refTransform();
+	listener->setPrefab(0);
+	while (listener->next(ListenerBit)) {
 
-		if (listener.Listener->volume <= 0) {
+		if (GET(listener, Listener)->volume <= 0) {
 			continue;
 		}
 
-		invFocus = 1 - listener.Listener->focus;
-		right = vec3(1, 0, 0) * listener.Transform->rot;
-		forward = vec3(0, 0, -1) * listener.Transform->rot;
+		invFocus = 1 - GET(listener, Listener)->focus;
+		right = vec3(1, 0, 0) * GET(listener, Transform)->rot;
+		forward = vec3(0, 0, -1) * GET(listener, Transform)->rot;
 
-		sound.setPrefab("sound");
-		while (sound.next()) {
-			sound.refSound();
-			sound.refTransform();
-
-			
-			diff = sound.Transform->pos - listener.Transform->pos;
+		sound->setPrefab("sound");
+		while (sound->next()) {
+			diff = GET(sound, Transform)->pos - GET(listener, Transform)->pos;
 			dist = length(diff);
 			if (dist) {
 				diff /= dist;
@@ -145,22 +140,22 @@ void updateAudioSystem(CB_PARAMS) {
 				rightVolume = dot(right, diff);
 				leftVolume = -rightVolume;
 				forwardVolume = dot(forward, diff);
-				rightVolume = max(0.0f, rightVolume * listener.Listener->focus + invFocus);
-				leftVolume = max(0.0f, leftVolume * listener.Listener->focus + invFocus);
-				forwardVolume = max(0.0f, forwardVolume * listener.Listener->focus + invFocus);
+				rightVolume = max(0.0f, rightVolume * GET(listener, Listener)->focus + invFocus);
+				leftVolume = max(0.0f, leftVolume * GET(listener, Listener)->focus + invFocus);
+				forwardVolume = max(0.0f, forwardVolume * GET(listener, Listener)->focus + invFocus);
 
-				inv_sqr = sound.Sound->fade / (pow(dist, 2) + sound.Sound->fade);
+				inv_sqr = GET(sound, Sound)->fade / (pow(dist, 2) + GET(sound, Sound)->fade);
 
 				leftVolume *= inv_sqr * forwardVolume;
 				rightVolume *= inv_sqr * forwardVolume;
 			}
 			else {
-				rightVolume = listener.Listener->volume;
-				leftVolume = listener.Listener->volume;
+				rightVolume = GET(listener, Listener)->volume;
+				leftVolume = GET(listener, Listener)->volume;
 			}
 			
-			sound.Sound->leftVolume = sound.Sound->volume * leftVolume;
-			sound.Sound->rightVolume = sound.Sound->volume * rightVolume;
+			GET(sound, Sound)->leftVolume = GET(sound, Sound)->volume * leftVolume;
+			GET(sound, Sound)->rightVolume = GET(sound, Sound)->volume * rightVolume;
 		}
 	}
 }

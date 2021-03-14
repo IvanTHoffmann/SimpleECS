@@ -53,9 +53,8 @@ public:
 	NameMap actionNames;
 	vector<Action> actions;
 
-	InputManager();
+	InputManager(Application* _app);
 	//~InputManager();
-	void setApp(Application* _app);
 
 	void update();
 	void newAction(string action);
@@ -74,7 +73,6 @@ public:
 	bool bindInput(u8 action, u8 deviceID, u8 inputID, float deadzone = 0.0f, float inMul = 1.0f, float outMul = 1.0f, bool mulDt=false);
 
 	void setCallbacks(GLFWwindow* window);
-
 };
 
 void onJoystick(int joyId, int status);

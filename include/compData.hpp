@@ -1,10 +1,6 @@
 #pragma once
 
-// TODO: generate this file automatically
-
 #include "SimpleECS/util.hpp"
-
-#define COMP_TYPE(a) a ## Comp
 
 #define FOREACH_COMP(f) \
 f(Character) \
@@ -18,6 +14,18 @@ f(Rigidbody) \
 f(Constraint) \
 f(Sound) \
 f(Listener) \
+
+#define COMP_TYPE(a) a ## Comp
+#define DECL_TYPE(a) struct COMP_TYPE(a);
+FOREACH_COMP(DECL_TYPE)
+
+#define COMP_ENUM(a) a ## Enum
+#define DECL_ENUM(a) COMP_ENUM(a),
+enum { FOREACH_COMP(DECL_ENUM) COMP_COUNT_ENUM };
+
+#define COMP_BIT(a) a ## Bit
+#define DECL_BIT(a) COMP_BIT(a) = 1<<COMP_ENUM(a),
+enum { FOREACH_COMP(DECL_BIT) };
 
 struct Offset {
 	vec3 pos;
@@ -103,10 +111,10 @@ struct COMP_TYPE(Text) { //
 // AUDIO
 
 struct COMP_TYPE(Sound) {
-	u8 flags;
-	u16 soundIndex; // Can refer to a loaded wav file or a sound generator
-	u32 sampleIndex;
 	float volume, leftVolume, rightVolume, speed, subIndex, fade;
+	u32 sampleIndex;
+	u16 soundIndex; // Can refer to a loaded wav file or a sound generator
+	u8 flags;
 };
 
 struct COMP_TYPE(Listener) {

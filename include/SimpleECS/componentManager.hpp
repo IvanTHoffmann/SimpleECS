@@ -3,23 +3,9 @@
 #include "SimpleECS/decl.hpp"
 #include "compData.hpp"
 
-#define COMP_ENUM(a) a ## Enum
-#define COMP_BIT(a) a ## Bit
-
-#define DECL_TYPE(a) struct COMP_TYPE(a);
-FOREACH_COMP(DECL_TYPE)
-
-#define DECL_ENUM(a) COMP_ENUM(a),
-enum { FOREACH_COMP(DECL_ENUM) COMP_COUNT_ENUM };
-#define COMP_COUNT COMP_COUNT_ENUM
-
-#define DECL_BIT(a) COMP_BIT(a) = 1<<COMP_ENUM(a),
-enum { FOREACH_COMP(DECL_BIT) };
-
-#define GET_SIZE(a) sizeof(a ## Comp),
-const u16 compSize[COMP_COUNT] = { FOREACH_COMP(GET_SIZE) };
-
-#define compMask std::bitset<COMP_COUNT>
+#include <bitset>
+#define COMP_COUNT 32
+#define compMask std::bitset<COMP_COUNT> // Bitset isn't expandable. Use vector<bool> or custom class instead
 
 #define COMP_DELETED 0x20 // This component belongs to a deleted entity.
 #define	COMP_DISABLED 0x40 // This component has been disabled.
@@ -51,31 +37,34 @@ struct PrefabData {
 	u8 flags;
 	u32 entityIndex;
 	u16 capacity, size, newest;
-	u32 indices[COMP_COUNT];
 	compMask mask;
+	vector<u32> indices;
 };
 
-#define MAX_PREFABS 10 // TODO: This should be a user defined variable
+struct CompData {
+	size_t size;
+	u32 count, startPos;
+};
 
 class ComponentManager {
 private:
 	Application* app;
-	size_t data; // pointer to the beggining of component data
-	u32 dataSize;
-	u32 arrays[COMP_COUNT]; // logs where each component array begins in data
 
-	PrefabData prefabs[MAX_PREFABS];
-	u8 prefabCount;
+	vector<u8> data;
+	vector<PrefabData> prefabs;
 
 public:
-	NameMap prefabNames, entityNames;
-	u8 maxPrefabs = MAX_PREFABS;
+	vector<CompData> components;
+
+	NameMap prefabNames, entityNames, componentNames;
 	
-	ComponentManager();
+	ComponentManager(Application* _app);
 	~ComponentManager();
 	void setApp(Application* _app);
 
-	u8 getPrefabCount() { return prefabCount; }
+	u16 addComponent(string name, size_t size);
+
+	u8 getPrefabCount() { return prefabs.size(); }
 	u16 addPrefab(std::string name, u32 capacity, compMask mask, u8 flags = 0);
 	void recalculateMemory();
 	
@@ -90,5 +79,4 @@ public:
 
 	bool getCompPtr(u8** p, u16 compID, u16 prefabID, u32 entIndex);
 	bool getCompPtr(u8** p, u16 compID, u32 compIndex = 0);
-
 };
